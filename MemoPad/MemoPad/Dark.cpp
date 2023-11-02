@@ -633,6 +633,8 @@ CDark::OnMsgWindow( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		HDC	hDC = GetWindowDC( hWnd );
 		bool	bFocused = GetForegroundWindow() == hWnd;
 		FillRect( hDC, &rectLine, bFocused? m_brMenu: m_brMenuHot );
+		rectLine.top = rectLine.bottom-1;
+		FillRect( hDC, &rectLine, bFocused? m_brMenuHot: m_brMenu );
 		ReleaseDC( hWnd, hDC );
 
 		return	lr;
