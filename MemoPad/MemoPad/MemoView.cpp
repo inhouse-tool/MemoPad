@@ -343,6 +343,10 @@ CMemoView::CtlColor( CDC* pDC, UINT nCtlColor )
 void
 CMemoView::OnFileOpen( void )
 {
+	// With unsaved modified file: Warn it.
+
+	ConfirmDiscard();
+
 	// Open the file dialog.
 
 	TCHAR	szFile[MAX_PATH] = {};
@@ -457,25 +461,9 @@ CMemoView::OnFileClose( void )
 {
 	// With unsaved modified file: Warn it.
 
-	if	( GetModify() && !m_bDiscardModified ){
-		CString	strQuestion;
-		if	( m_strFile.IsEmpty() )
-			strQuestion.Format( _T("Do you want to save this new document?") );
-		else{
-			CString	strFile = m_strFile;
-			int	x = strFile.ReverseFind( '\\' );
-			strFile.Delete( 0, x+1 );
-			strQuestion.Format( _T("Do you want to save changes to %s?"), strFile.GetBuffer() );
-		}
-		
-		int	iAnswer = AfxMessageBox( strQuestion, MB_ICONEXCLAMATION | MB_YESNOCANCEL | MB_DEFBUTTON3, 0 );
+	ConfirmDiscard();
 
-		if	( iAnswer == IDCANCEL )
-			return;
-
-		else if	( iAnswer == IDYES )
-			OnFileSave();
-	}
+	// Then close the application.
 
 	AfxGetMainWnd()->PostMessage( WM_CLOSE, 0, 0 );
 }
@@ -976,6 +964,32 @@ CMemoView::SaveFile( CString strFile )
 	}
 	else
 		return	false;
+}
+
+void
+CMemoView::ConfirmDiscard( void )
+{
+	// With unsaved modified file: Warn it.
+
+	if	( GetModify() && !m_bDiscardModified ){
+		CString	strQuestion;
+		if	( m_strFile.IsEmpty() )
+			strQuestion.Format( _T("Do you want to save this new document?") );
+		else{
+			CString	strFile = m_strFile;
+			int	x = strFile.ReverseFind( '\\' );
+			strFile.Delete( 0, x+1 );
+			strQuestion.Format( _T("Do you want to save changes to %s?"), strFile.GetBuffer() );
+		}
+		
+		int	iAnswer = AfxMessageBox( strQuestion, MB_ICONEXCLAMATION | MB_YESNOCANCEL | MB_DEFBUTTON3, 0 );
+
+		if	( iAnswer == IDCANCEL )
+			return;
+
+		else if	( iAnswer == IDYES )
+			OnFileSave();
+	}
 }
 
 DWORD
@@ -1517,7 +1531,7 @@ CMemoView::Undo( void )
 			iEnd += strText.GetLength();
 		}
 
-		// Set the new text ans set the caret.
+		// Set the new text and set the caret.
 
 		SetWindowText( m_strLines );
 		SetSel( iChar, iEnd );
@@ -1575,7 +1589,7 @@ CMemoView::Redo( void )
 			iEnd += strNew.GetLength();
 		}
 
-		// Set the new text ans set the caret.
+		// Set the new text and set the caret.
 
 		SetWindowText( m_strLines );
 		SetSel( iChar, iEnd );

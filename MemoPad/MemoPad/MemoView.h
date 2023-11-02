@@ -2,7 +2,6 @@
 //
 
 #pragma once
-#include "MessageDlg.h"
 #include "FindDlg.h"
 #include "FontDlg.h"
 
@@ -116,6 +115,7 @@ protected:
 
 		bool	LoadFile( CString strFile );
 		bool	SaveFile( CString strFile );
+		void	ConfirmDiscard( void );
 		DWORD	GetSizeOnFile( CString strFile, bool bModified = false );
 		DWORD	GetSizeOnDisk( CString strFile, DWORD cbFile = 0 );
 		void	GetTextEncode( BYTE* pbText, QWORD cbText );
