@@ -640,6 +640,7 @@ CMemoView::OnEditInsertUnicode( void )
 
 	SetSel( xStart, xEnd+1 );
 	CString	strUnicode;
+	int	nch = 1;
 
 	// Codes 0x00000 - 0x0ffff: Set as a Unicode.
 
@@ -655,11 +656,12 @@ CMemoView::OnEditInsertUnicode( void )
 		WORD	wH = (WORD)( dwUnicode >> 10 );
 		wH += 0xd800;
 		strUnicode.Format( _T("%c%c"), (TCHAR)wH, (TCHAR)wL );
+		nch = 2;
 	}
 
 	ReplaceSel( strUnicode, TRUE );
 
-	SetSel( xStart, xStart+1, FALSE );
+	SetSel( xStart+nch, xStart+nch, FALSE );
 }
 
 void
