@@ -21,7 +21,7 @@
 
 TCHAR*
 CMemoView::m_apchEncode[]
-	= { _T("ANSI"), _T("Shift JIS"), _T("UTF-16 LE"), _T("UTF-16 BE"), _T("UTF-8"), _T("UTF-8 with BOM"), _T("Unknown"), NULL };
+	= { _T("ANSI"), _T("Shift JIS"), _T("UTF-8"), _T("UTF-8 with BOM"), _T("UTF-16 LE"), _T("UTF-16 BE"), _T("Unknown"), NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -500,12 +500,12 @@ CMemoView::OnFileProperties( void )
 		i = 0;
 	else if	( m_eEncode == ShiftJIS )
 		i = 1;
-	else if	( m_eEncode == UTF16LE )
-		i = 2;
-	else if	( m_eEncode == UTF16BE )
-		i = 3;
 	else if	( m_eEncode == UTF8 )
+		i = 2;
+	else if	( m_eEncode == UTF16LE )
 		i = 4;
+	else if	( m_eEncode == UTF16BE )
+		i = 5;
 	else
 		i = 6;
 	str.Format( _T("%s\n"), m_apchEncode[i] );
@@ -604,16 +604,58 @@ CMemoView::OnEditInsertUnicode( void )
 {
 	int	xStart, xEnd;
 	GetSel( xStart, xEnd );
-	if	( xEnd - xStart != 4 )
+
+	if	( xEnd == xStart ){
+		if	( !m_strLines[xEnd] )
+			xStart = --xEnd;
+		else if	(  m_strLines[xEnd] == '\r' )
+			xStart = --xEnd;
+
+		for	( ;; ){
+			TCHAR	ch = m_strLines[xStart];
+			if	( !ch )
+				break;
+			else if	( ( ch >= '0' && ch <= '9' ) ||
+				  ( ch >= 'A' && ch <= 'F' ) ||
+				  ( ch >= 'a' && ch <= 'f' )    )
+				xStart--;
+			else{
+				xStart++;
+				break;
+			}
+			if	( xEnd - xStart > 6 )
+				return;
+			if	( xStart <= 0 )
+				break;
+		}
+	}
+	if	( ( xEnd - xStart <= 3 ) || ( xEnd - xStart > 5 ) )
 		return;
 
-	CString	strHex = m_strLines.Mid( xStart, ( xEnd - xStart ) );
+	CString	strHex = m_strLines.Mid( xStart, ( xEnd - xStart + 1 ) );
 	DWORD	dwUnicode = (DWORD)strtol( strHex.GetBuffer(), NULL, 16 );
-	if	( !dwUnicode )
+	if	( ( dwUnicode < 0x20 ) || ( dwUnicode > 0x30000 ))
 		return;
 
+	SetSel( xStart, xEnd+1 );
 	CString	strUnicode;
-	strUnicode.Format( _T("%c"), (TCHAR)dwUnicode );
+
+	// Codes 0x00000 - 0x0ffff: Set as a Unicode.
+
+	if	( dwUnicode < 0x10000 )
+		strUnicode.Format( _T("%c"), (TCHAR)dwUnicode );
+
+	// Codes 0x10000 - 0x30000: Set as a surrogate pair.
+
+	else{
+		dwUnicode -= 0x10000;
+		WORD	wL = (WORD)( dwUnicode & 0x03ff );
+		wL += 0xdc00;
+		WORD	wH = (WORD)( dwUnicode >> 10 );
+		wH += 0xd800;
+		strUnicode.Format( _T("%c%c"), (TCHAR)wH, (TCHAR)wL );
+	}
+
 	ReplaceSel( strUnicode, TRUE );
 
 	SetSel( xStart, xStart+1, FALSE );
@@ -1193,12 +1235,12 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 			i = 0;
 		else if	( m_eEncode == ShiftJIS )
 			i = 1;
-		else if	( m_eEncode == UTF16LE )
-			i = 2;
-		else if	( m_eEncode == UTF16BE )
-			i = 3;
 		else if	( m_eEncode == UTF8 )
+			i = 2;
+		else if	( m_eEncode == UTF16LE )
 			i = 4;
+		else if	( m_eEncode == UTF16BE )
+			i = 5;
 		else
 			i = 6;
 		str = m_apchEncode[i];
@@ -1277,15 +1319,12 @@ CMemoView::SetDefaultEncode( CFileDialog& dlg, Encode eEncode )
 		dwDefault = 0;
 	else if	( m_eEncode == ShiftJIS )
 		dwDefault = 1;
-	else if	( m_eEncode == UTF8 ){
-		dwDefault = 4;
-		if	( m_cbBOM )
-			dwDefault++;
-	}
-	else if	( m_eEncode == UTF16BE )
-		dwDefault = 3;
-	else if	( m_eEncode == UTF16LE )
+	else if	( m_eEncode == UTF8 )
 		dwDefault = 2;
+	else if	( m_eEncode == UTF16BE )
+		dwDefault = 4;
+	else if	( m_eEncode == UTF16LE )
+		dwDefault = 5;
 	else
 		dwDefault = 0;
 
@@ -1309,22 +1348,24 @@ CMemoView::GetSpecifiedEncode( CFileDialog& dlg )
 		m_dwBOM = 0;
 	}
 	else if	( dwEncode == 2 ){
+		m_eEncode = UTF8;
+		m_cbBOM = 0;
+		m_dwBOM = 0;
+	}
+	else if	( dwEncode == 3 ){
+		m_eEncode = UTF8;
+		m_cbBOM = 3;
+		m_dwBOM = 0xbfbbef;
+	}
+	else if	( dwEncode == 4 ){
 		m_eEncode = UTF16LE;
 		m_cbBOM = 2;
 		m_dwBOM = 0xfeff;
 	}
-	else if	( dwEncode == 3 ){
+	else if	( dwEncode == 5 ){
 		m_eEncode = UTF16BE;
 		m_cbBOM = 2;
 		m_dwBOM = 0xfffe;
-	}
-	else if	( dwEncode == 4 ){
-		m_eEncode = UTF8;
-	}
-	else if	( dwEncode == 5 ){
-		m_eEncode = UTF8;
-		m_cbBOM = 3;
-		m_dwBOM = 0xbfbbef;
 	}
 }
 
