@@ -424,6 +424,7 @@ CMemoView::OnFileSaveAs( void )
 	dlg.m_ofn.lpstrDefExt     = strExt.GetBuffer();
 	dlg.m_ofn.lpstrInitialDir = NULL;
 	dlg.m_ofn.lpstrTitle      = _T("Save as");
+	dlg.m_ofn.Flags          &= ~OFN_OVERWRITEPROMPT;
 	*szFile = '\0';
 
 	// Select the default encoding.
