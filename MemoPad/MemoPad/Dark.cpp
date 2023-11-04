@@ -891,6 +891,13 @@ CDark::OnPaintCheckBox( HWND hWnd, HDC hDC, CRect rect )
 	bool	bTab, bAlt;
 	GetWndTabAlt( hWnd, bTab, bAlt );
 
+	int	cyFont;
+	{
+		TEXTMETRIC	tm = {};
+		GetTextMetrics( hDC, &tm );
+		cyFont = tm.tmAscent;
+	}
+
 	CString	strTitle;
 	pWnd->GetWindowText( strTitle );
 	if	( !bAlt )
@@ -901,16 +908,19 @@ CDark::OnPaintCheckBox( HWND hWnd, HDC hDC, CRect rect )
 	SetBkMode( hDC, OPAQUE );
 
 	CRect	rectMark = rect;
-	rectMark.right = rectMark.left + rectMark.Height();
-	rectMark.bottom--;
+	int	cx = rectMark.Width();
+	int	cy = rectMark.Height();
+	rectMark.right   = rectMark.left + cyFont;
+	rectMark.top    += ( cy - cyFont ) / 2;
+	rectMark.bottom  = rectMark.top  + cyFont;
 	FillRect( hDC, &rectMark, m_brBack );
-	GdipRoundRect( hDC, rectMark, CPoint( 6, 6 ), crInner, crEdge );
+	GdipRoundRect( hDC, rectMark, CPoint( 5, 5 ), crInner, crEdge );
 
 	if	( bChecked )
 		GdipCheckMark( hDC, rectMark, m_crBack );
 
-	rect.left += rect.Height() + rect.Height()/4;
-	rect.top  += rect.Height()/8;
+	rect.left += rectMark.Height() + rectMark.Height()/2;
+	rect.top  += rectMark.Height()/8;
 
 	DrawText( hDC, strTitle.GetBuffer(), strTitle.GetLength(), &rect, DT_SINGLELINE );
 
@@ -1040,12 +1050,6 @@ CDark::OnPaintRadioButton( HWND hWnd, HDC hDC, CRect rect )
 	bool	bHot = rect.PtInRect( pt );
 	bool	bFocus = hWndFocus == hWnd;
 
-	CRect	rectMark = rect;
-	rectMark.right = rectMark.left + rectMark.Height();
-	FillRect( hDC, &rectMark, m_brBack );
-	rectMark.right--;
-	rectMark.bottom--;
-
 	COLORREF	crInner;
 	COLORREF	crEdge;
 	int		nThickness;
@@ -1054,23 +1058,23 @@ CDark::OnPaintRadioButton( HWND hWnd, HDC hDC, CRect rect )
 			if	( bHot ){
 				crInner = RGB(   0,   0,   0 );
 				crEdge  = RGB( 152, 151, 147 );
-				nThickness = 3;
+				nThickness = 2;
 			}
 			else{
 				crInner = RGB(   0,   0,   0 );
 				crEdge  = RGB( 166, 165, 161 );
-				nThickness = 4;
+				nThickness = 3;
 			}
 		else
 			if	( bHot ){
 				crInner = RGB( 255, 255, 255 );
 				crEdge  = RGB(  81,  79,  77 );
-				nThickness = 3;
+				nThickness = 2;
 			}
 			else{
 				crInner = RGB( 255, 255, 255 );
 				crEdge  = RGB(  65,  63,  61 );
-				nThickness = 4;
+				nThickness = 3;
 			}
 	else
 		if	( m_bDarken )
@@ -1099,6 +1103,13 @@ CDark::OnPaintRadioButton( HWND hWnd, HDC hDC, CRect rect )
 	bool	bTab, bAlt;
 	GetWndTabAlt( hWnd, bTab, bAlt );
 
+	int	cyFont;
+	{
+		TEXTMETRIC	tm = {};
+		GetTextMetrics( hDC, &tm );
+		cyFont = tm.tmAscent;
+	}
+
 	CString	strTitle;
 	pWnd->GetWindowText( strTitle );
 	if	( !bAlt )
@@ -1108,10 +1119,16 @@ CDark::OnPaintRadioButton( HWND hWnd, HDC hDC, CRect rect )
 	SetBkColor(   hDC, m_crBack );
 	SetBkMode( hDC, OPAQUE );
 
+	CRect	rectMark = rect;
+	int	cx = rectMark.Width();
+	int	cy = rectMark.Height();
+	rectMark.right   = rectMark.left + cyFont;
+	rectMark.top    += ( cy - cyFont ) / 2;
+	rectMark.bottom  = rectMark.top  + cyFont;
 	GdipCircle( hDC, rectMark, nThickness, crInner, crEdge );
 
-	rect.left += rect.Height() + rect.Height()/8;
-	rect.top  += rect.Height()/8;
+	rect.left += rectMark.Height() + rectMark.Height()/4;
+	rect.top  += rectMark.Height()/8;
 
 	DrawText( hDC, strTitle.GetBuffer(), strTitle.GetLength(), &rect, DT_SINGLELINE );
 
