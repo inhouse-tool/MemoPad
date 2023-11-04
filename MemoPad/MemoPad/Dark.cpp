@@ -125,34 +125,53 @@ typedef	struct	tagUAHMEASUREMENUITEM
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructor & Destructor
 
-#define	DARKEN	// The switch to enable/disable this class
-
 CDark::CDark( void )
 {
-#ifdef	DARKEN
-	m_dwWinVer = GetWinVer();
+	m_bSupported  = false;
+	m_bDarken     = false;
+	m_dwWinVer    = 0;
+	m_hUX         = NULL;
+	m_hUser       = NULL;
 
-	m_hUX   = LoadLibraryEx( _T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32 );
-	m_hUser = LoadLibraryEx( _T("user32.dll"),  NULL, LOAD_LIBRARY_SEARCH_SYSTEM32 );
-	GetDarkThemeAPIs();
-	GetDarkThemeSupport();
-
-	Gdiplus::GdiplusStartupInput	si = { 0 };
-	si.GdiplusVersion = 1;
-	Gdiplus::GdiplusStartup( &m_llGDI, &si, NULL );
-
-	SetColors();
-
+	m_llGDI       = 0;
 	m_hWndClicked = NULL;
-	m_hFontMenu = NULL;
+	m_crFore      = 0;
+	m_crBack      = 0;
+	m_crGray      = 0;
+	m_brBack      = NULL;
+	m_hPenEdge    = NULL;
+	m_hPenGray    = NULL;
+	m_crCombo     = 0;
+	m_brCombo     = NULL;
+	m_crMenu      = 0;
+	m_crMenuHot   = 0;
+	m_brMenu      = NULL;
+	m_brMenuHot   = NULL;
+	m_hFontMenu   = NULL;
+	m_hFontMenu   = NULL;
+	m_crEdit      = 0;
+	m_brEdit      = NULL;
+	m_brScrollBar = NULL;
+	m_hWndSel     = NULL;
 
-	m_hWndSel = NULL;
-#endif
+	if	( AfxGetApp()->GetProfileInt( _T("Settings"), _T("EnableDark"), 1 ) ){
+		m_dwWinVer = GetWinVer();
+
+		m_hUX   = LoadLibraryEx( _T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32 );
+		m_hUser = LoadLibraryEx( _T("user32.dll"),  NULL, LOAD_LIBRARY_SEARCH_SYSTEM32 );
+		GetDarkThemeAPIs();
+		GetDarkThemeSupport();
+
+		Gdiplus::GdiplusStartupInput	si = { 0 };
+		si.GdiplusVersion = 1;
+		Gdiplus::GdiplusStartup( &m_llGDI, &si, NULL );
+
+		SetColors();
+	}
 }
 
 CDark::~CDark( void )
 {
-#ifdef	DARKEN
 	if	( m_hUX ){
 		FreeLibrary( m_hUX );
 		m_hUX = NULL;
@@ -162,16 +181,23 @@ CDark::~CDark( void )
 		m_hUser = NULL;
 	}
 
-	Gdiplus::GdiplusShutdown( m_llGDI );
+	if	( m_llGDI )
+		Gdiplus::GdiplusShutdown( m_llGDI );
 
-	DeleteObject( m_brBack );
-	DeleteObject( m_hPenGray );
-	DeleteObject( m_brCombo );
-	DeleteObject( m_brMenu );
-	DeleteObject( m_brMenuHot );
-	DeleteObject( m_brEdit );
-	DeleteObject( m_brScrollBar );
-#endif
+	if	( m_brBack )
+		DeleteObject( m_brBack );
+	if	( m_hPenGray )
+		DeleteObject( m_hPenGray );
+	if	( m_brCombo )
+		DeleteObject( m_brCombo );
+	if	( m_brMenu )
+		DeleteObject( m_brMenu );
+	if	( m_brMenuHot )
+		DeleteObject( m_brMenuHot );
+	if	( m_brEdit )
+		DeleteObject( m_brEdit );
+	if	( m_brScrollBar )
+		DeleteObject( m_brScrollBar );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -180,14 +206,12 @@ CDark::~CDark( void )
 void
 CDark::Initialize( HWND hWnd )
 {
-#ifdef	DARKEN
 	if	( !m_bSupported )
 		return;
 
 	SetDarkThemeEnable( hWnd );
 
 	HookWinProc( hWnd );
-#endif
 }
 
 bool
@@ -366,13 +390,13 @@ CDark::FindThunk( void* pBase, char* pchDLL, WORD wOrdinal )
 void
 CDark::SetColors( void )
 {
-	m_crFore     = m_bDarken? RGB( 247, 247, 247 ): RGB(  40,  40,  40 );
-	m_crBack     = m_bDarken? RGB(  40,  40,  40 ): RGB( 243, 243, 243 );
-	m_crGray     = m_bDarken? RGB( 127, 127, 127 ): RGB( 127, 127, 127 );
-	m_crCombo    = m_crBack;
-	m_crMenu     = m_bDarken? RGB(  31,  31,  31 ): RGB( 249, 249, 249 );
-	m_crMenuHot  = m_bDarken? RGB(  44,  44,  44 ): RGB( 240, 240, 240 );
-	m_crEdit     = m_bDarken? RGB(  33,  33,  33 ): RGB( 249, 249, 249 );
+	m_crFore      = m_bDarken? RGB( 247, 247, 247 ): RGB(  40,  40,  40 );
+	m_crBack      = m_bDarken? RGB(  40,  40,  40 ): RGB( 243, 243, 243 );
+	m_crGray      = m_bDarken? RGB( 127, 127, 127 ): RGB( 127, 127, 127 );
+	m_crCombo     = m_crBack;
+	m_crMenu      = m_bDarken? RGB(  31,  31,  31 ): RGB( 249, 249, 249 );
+	m_crMenuHot   = m_bDarken? RGB(  44,  44,  44 ): RGB( 240, 240, 240 );
+	m_crEdit      = m_bDarken? RGB(  33,  33,  33 ): RGB( 249, 249, 249 );
 
 	DeleteObject( m_brBack );
 	DeleteObject( m_hPenGray );
@@ -382,14 +406,14 @@ CDark::SetColors( void )
 	DeleteObject( m_brEdit );
 	DeleteObject( m_brScrollBar );
 
-	m_brBack     = CreateSolidBrush( m_crBack );
-	m_hPenGray   = CreatePen( PS_SOLID, 1, m_crGray );
-	m_hPenEdge   = CreatePen( PS_SOLID, 5, m_crEdit );
-	m_brCombo    = NULL;
-	m_brMenu     = CreateSolidBrush( m_crMenu );
-	m_brMenuHot  = CreateSolidBrush( m_crMenuHot );
-	m_brEdit     = CreateSolidBrush( m_crEdit );
-	m_brScrollBar= CreateSolidBrush( RGB(  23,  23,  23 ) );
+	m_brBack      = CreateSolidBrush( m_crBack );
+	m_hPenGray    = CreatePen( PS_SOLID, 1, m_crGray );
+	m_hPenEdge    = CreatePen( PS_SOLID, 5, m_crEdit );
+	m_brCombo     = NULL;
+	m_brMenu      = CreateSolidBrush( m_crMenu );
+	m_brMenuHot   = CreateSolidBrush( m_crMenuHot );
+	m_brEdit      = CreateSolidBrush( m_crEdit );
+	m_brScrollBar = CreateSolidBrush( RGB(  23,  23,  23 ) );
 }
 
 void
