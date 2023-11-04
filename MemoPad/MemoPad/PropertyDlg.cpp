@@ -8,6 +8,9 @@
 
 IMPLEMENT_DYNAMIC( CPropertyDlg, CDialog )
 
+///////////////////////////////////////////////////////////////////////////////////////
+// Constructor
+
 CPropertyDlg::CPropertyDlg( CWnd* pParent )
 	: CDialog( IDD_PROPERTIES, pParent )
 {
@@ -16,6 +19,9 @@ CPropertyDlg::CPropertyDlg( CWnd* pParent )
 	m_hcArrow = AfxGetApp()->LoadStandardCursor( IDC_ARROW );
 	m_hcHand  = AfxGetApp()->LoadStandardCursor( IDC_HAND );
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Interface Functions
 
 void
 CPropertyDlg::SetFile( CString strFile )
@@ -34,6 +40,9 @@ CPropertyDlg::SetModified( bool bModified )
 {
 	m_bModified = bModified;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Overridden Functions
 
 BOOL
 CPropertyDlg::OnInitDialog( void )
@@ -67,17 +76,27 @@ CPropertyDlg::OnInitDialog( void )
 
 	SupportDarkMode( GetSafeHwnd() );
 
+	CWnd*	pWnd = GetOwner();
+	if	( pWnd ){
+		CRect	rectView, rectDlg;
+		pWnd->GetWindowRect( &rectView );
+		GetWindowRect( &rectDlg );
+		int	x = rectView.left;
+		int	y = rectView.bottom - rectDlg.Height();
+		int	cx = rectView.Width();
+		int	cy = rectDlg.Height();
+		SetWindowPos( NULL, x, y, cx, cy, SWP_NOZORDER | SWP_FRAMECHANGED );
+	}
+
 	return	TRUE;
 }
 
-void
-CPropertyDlg::OnOK( void )
-{
-	PostMessage( WM_SYSCOMMAND, SC_CLOSE, 0 );
-}
+///////////////////////////////////////////////////////////////////////////////////////
+// Message Handlers
 
 BEGIN_MESSAGE_MAP( CPropertyDlg, CDialog )
 	ON_WM_SETCURSOR()
+	ON_WM_SIZE()
 	ON_STN_CLICKED( IDC_STATIC_PATH, OnClickPath )
 	ON_MESSAGE( WM_CTLCOLORSTATIC, OnCtlColorStatic )
 END_MESSAGE_MAP()
@@ -99,6 +118,37 @@ CPropertyDlg::OnSetCursor( CWnd* pWnd, UINT nHitTest, UINT message )
 	}
 
 	return	TRUE;
+}
+
+void
+CPropertyDlg::OnSize( UINT nType, int cx, int cy )
+{
+	CDialog::OnSize( nType, cx, cy );
+
+	CWnd*	pCtrl = GetDlgItem( IDC_STATIC_CREATE );
+	if	( !pCtrl )
+		return;
+
+	CRect	rectCtrl;
+	pCtrl->GetClientRect( &rectCtrl );
+
+	int	cyCtrl = rectCtrl.Height();
+	int	cxCtrl = ( cx / 2 ) - 16;
+	CSize	size;
+	size = GetValueSize( IDC_STATIC_CREATE );
+	GetDlgItem( IDC_STATIC_CREATE   )->SetWindowPos( NULL, 0, 0, size.cx, size.cy, SWP_NOZORDER | SWP_NOMOVE );
+	size = GetValueSize( IDC_STATIC_MODIFY );
+	GetDlgItem( IDC_STATIC_MODIFY   )->SetWindowPos( NULL, 0, 0, size.cx, size.cy, SWP_NOZORDER | SWP_NOMOVE );
+	size = GetValueSize( IDC_STATIC_PROPERTY );
+	GetDlgItem( IDC_STATIC_PROPERTY )->SetWindowPos( NULL, 0, 0, size.cx, size.cy, SWP_NOZORDER | SWP_NOMOVE );
+
+	CPoint	pt;
+	pt = GetUnitPoint( IDC_STATIC_CREATE );
+	GetDlgItem( IDC_STATIC_CREATED  )->SetWindowPos( NULL, pt.x, pt.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE );
+	pt = GetUnitPoint( IDC_STATIC_MODIFY );
+	GetDlgItem( IDC_STATIC_MODIFIED )->SetWindowPos( NULL, pt.x, pt.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE );
+	pt = GetUnitPoint( IDC_STATIC_PROPERTY );
+	GetDlgItem( IDC_STATIC_UNITS    )->SetWindowPos( NULL, pt.x, pt.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE );
 }
 
 void
@@ -128,4 +178,38 @@ CPropertyDlg::OnCtlColorStatic( WPARAM wParam, LPARAM lParam )
 		SetTextColor( hDC, (COLORREF)GetSysColor( COLOR_HOTLIGHT ) );
 
 	return	(LRESULT)hbr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Specific Functions
+
+CSize
+CPropertyDlg::GetValueSize( UINT uID )
+{
+	CWnd*	pCtrl = GetDlgItem( uID );
+
+	CRect	rectCtrl, rectDlg;
+	pCtrl->GetClientRect( &rectCtrl );
+	GetClientRect( &rectDlg );
+
+	int	cx = ( rectDlg.Width() / 2 ) -16;
+
+	return	CSize( cx, rectCtrl.Height() );
+}
+
+CPoint
+CPropertyDlg::GetUnitPoint( UINT uID )
+{
+	CWnd*	pCtrl = GetDlgItem( uID );
+
+	CRect	rectWindow, rectDlg;
+	pCtrl->GetWindowRect( &rectWindow );
+
+	ScreenToClient( &rectWindow );
+
+	GetClientRect( &rectDlg );
+	int	x = ( rectDlg.Width() / 2 ) -10;
+	OffsetRect( &rectWindow, x, 0 );
+
+	return	*(CPoint*)&rectWindow;
 }

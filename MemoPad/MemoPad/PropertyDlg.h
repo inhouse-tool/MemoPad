@@ -16,7 +16,6 @@ public:
 
 protected:
 	virtual	BOOL	OnInitDialog( void );
-	virtual	void	OnOK( void );
 
 		CString	m_strFile;
 		CString	m_strProperties;
@@ -27,7 +26,11 @@ protected:
 			m_hcHand;
 
 	afx_msg	BOOL	OnSetCursor( CWnd* pWnd, UINT nHitTest, UINT message );
+	afx_msg	void	OnSize( UINT nType, int cx, int cy );
 	afx_msg	void	OnClickPath( void );
 	afx_msg	LRESULT	OnCtlColorStatic( WPARAM wParam, LPARAM lParam );
 	DECLARE_MESSAGE_MAP()
+
+		CSize	GetValueSize( UINT uID );
+		CPoint	GetUnitPoint( UINT uID );
 };

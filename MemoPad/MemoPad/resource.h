@@ -26,13 +26,15 @@
 #define IDC_COMBO_NAME                  1013
 #define IDC_COMBO_STYLE                 1014
 #define IDC_COMBO_SIZE                  1015
-#define IDC_STATIC_PROPERTY             1016
+#define IDC_STATIC_PROPERTIES           1016
 #define IDC_STATIC_FILE                 1017
 #define IDC_STATIC_PATH                 1018
-#define IDC_STATIC_CREATED              1019
-#define IDC_STATIC_MODIFIED             1020
-#define IDC_STATIC_PROPERTIES           1021
-#define IDC_STATIC_MODIFY               1022
+#define IDC_STATIC_CREATE               1019
+#define IDC_STATIC_CREATED              1020
+#define IDC_STATIC_MODIFY               1021
+#define IDC_STATIC_MODIFIED             1022
+#define IDC_STATIC_PROPERTY             1023
+#define IDC_STATIC_UNITS                1024
 #define ID_VIEW_WORDWRAP                32782
 #define ID_VIEW_MENUBAR                 32783
 
@@ -42,7 +44,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        313
 #define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           133
 #endif
 #endif

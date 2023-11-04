@@ -518,6 +518,7 @@ CMemoView::OnFileProperties( void )
 	dlg.SetFile( m_strFile );
 	dlg.SetText( strProperties );
 	dlg.SetModified( GetModify() );
+	dlg.SetOwner( this );
 	dlg.DoModal();
 }
 
