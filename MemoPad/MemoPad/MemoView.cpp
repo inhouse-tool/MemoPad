@@ -21,7 +21,7 @@
 
 TCHAR*
 CMemoView::m_apchEncode[]
-	= { _T("ANSI"), _T("Shift JIS"), _T("UTF-8"), _T("UTF-8 with BOM"), _T("UTF-16 LE"), _T("UTF-16 BE"), _T("Unknown"), NULL };
+	= { _T("ANSI"), _T("Shift JIS"), _T("UTF-8"), _T("UTF-8 with BOM"), _T("UTF-16LE"), _T("UTF-16BE"), _T("Unknown"), NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -638,10 +638,10 @@ CMemoView::OnEditInsertUnicode( void )
 
 	CString	strHex = m_strLines.Mid( xStart, ( xEnd - xStart + 1 ) );
 	DWORD	dwUnicode = (DWORD)strtol( strHex.GetBuffer(), NULL, 16 );
-	if	( ( dwUnicode < 0x20 ) || ( dwUnicode > 0x30000 ))
+	if	( ( dwUnicode < 0x20 ) || ( dwUnicode > 0x10ffff ))
 		return;
 
-	SetSel( xStart, xEnd+1 );
+	SetSel( xStart, xEnd+1, TRUE );
 	CString	strUnicode;
 	int	nch = 1;
 
@@ -664,7 +664,7 @@ CMemoView::OnEditInsertUnicode( void )
 
 	ReplaceSel( strUnicode, TRUE );
 
-	SetSel( xStart+nch, xStart+nch, FALSE );
+	SetSel( xStart+nch, xStart+nch, TRUE );
 }
 
 void
@@ -805,13 +805,14 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		// Replace or select the text hit.
 
 		if	( m_bReplace || m_bReplaceAll ){
-			SetSel( x, x+m_strFind.GetLength() );
+			SetSel( x, x+m_strFind.GetLength(), FALSE );
 			ReplaceSel( m_strReplace, TRUE );
+			SetSel( x, x+m_strReplace.GetLength(), FALSE );
 			if	( m_bReplaceAll )
 				SetTimer( TID_REPLACEALL, 64, NULL );
 		}
 		else
-			SetSel( x, x+cch );
+			SetSel( x, x+cch, FALSE );
 
 		// Show line & column directly while the find dialog has caret.
 
@@ -1561,14 +1562,18 @@ CMemoView::Undo( void )
 		// The action was 'Insert', delete it.
 
 		if	( chMode == 'I' ){
-			m_strLines.Delete( iChar, strText.GetLength() );
+			iEnd += strText.GetLength();
+			SetSel( iChar, iEnd, FALSE );
+			ReplaceSel( _T(""), FALSE );
 		}
 
 		// The action was 'Delete', insert it.
 
 		else if	( chMode == 'D' ){
-			m_strLines.Insert( iChar, strText );
 			iEnd += strText.GetLength();
+			SetSel( iChar, iChar, FALSE );
+			ReplaceSel( strText, FALSE );
+			SetSel( iChar, iEnd, FALSE );
 		}
 
 		// The action was 'Replace', exchange it.
@@ -1577,15 +1582,11 @@ CMemoView::Undo( void )
 			int	x = strText.Find( '\b' );
 			CString	strNew = strText.Mid( x+1 );
 			strText = strText.Left( x );
-			m_strLines.Delete( iChar, strNew.GetLength() );
-			m_strLines.Insert( iChar, strText );
-			iEnd += strText.GetLength();
+			iEnd += strNew.GetLength();
+			SetSel( iChar, iEnd, FALSE );
+			ReplaceSel( strText, FALSE );
+			SetSel( iChar, iChar+strText.GetLength(), FALSE );
 		}
-
-		// Set the new text and set the caret.
-
-		SetWindowText( m_strLines );
-		SetSel( iChar, iEnd );
 	}
 
 	// Clear the falg to avoid retaking the difference.
@@ -1619,14 +1620,18 @@ CMemoView::Redo( void )
 		// The action was 'Insert', do it again.
 
 		if	( chMode == 'I' ){
-			m_strLines.Insert( iChar, strText );
 			iEnd += strText.GetLength();
+			SetSel( iChar, iChar, FALSE );
+			ReplaceSel( strText, FALSE );
+			SetSel( iChar, iEnd, FALSE );
 		}
 
 		// The action was 'Delete', do it again.
 
 		else if	( chMode == 'D' ){
-			m_strLines.Delete( iChar, strText.GetLength() );
+			iEnd += strText.GetLength();
+			SetSel( iChar, iEnd, FALSE );
+			ReplaceSel( _T(""), FALSE );
 		}
 
 		// The action was 'Replace', do it again.
@@ -1635,15 +1640,11 @@ CMemoView::Redo( void )
 			int	x = strText.Find( '\b' );
 			CString	strNew = strText.Mid( x+1 );
 			strText = strText.Left( x );
-			m_strLines.Delete( iChar, strText.GetLength() );
-			m_strLines.Insert( iChar, strNew );
-			iEnd += strNew.GetLength();
+			iEnd += strText.GetLength();
+			SetSel( iChar, iEnd, FALSE );
+			ReplaceSel( strNew, FALSE );
+			SetSel( iChar, iChar+strNew.GetLength(), FALSE );
 		}
-
-		// Set the new text and set the caret.
-
-		SetWindowText( m_strLines );
-		SetSel( iChar, iEnd );
 	}
 
 	// Clear the falg to avoid retaking the difference.
