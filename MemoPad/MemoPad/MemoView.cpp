@@ -383,7 +383,8 @@ CMemoView::OnFileSave( void )
 		GetLowestEncode( eEncode );
 		if	( eEncode > m_eEncode )
 			m_eEncode = eEncode;
-		SaveFile( m_strFile );
+		if	( !SaveFile( m_strFile ) )
+			return;
 	}
 
 	// Keep unmodified image.
@@ -445,7 +446,8 @@ CMemoView::OnFileSaveAs( void )
 
 	GetSpecifiedEncode( dlg );
 	m_strFile = dlg.m_ofn.lpstrFile;
-	SaveFile( m_strFile );
+	if	( !SaveFile( m_strFile ) )
+		return;
 
 	// Keep unmodified image.
 
@@ -803,8 +805,8 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		// Replace or select the text hit.
 
 		if	( m_bReplace || m_bReplaceAll ){
+			SetSel( x, x+m_strFind.GetLength() );
 			ReplaceSel( m_strReplace, TRUE );
-			SetSel( x, x+m_strReplace.GetLength() );
 			if	( m_bReplaceAll )
 				SetTimer( TID_REPLACEALL, 64, NULL );
 		}
@@ -1008,8 +1010,12 @@ CMemoView::SaveFile( CString strFile )
 
 		return	true;
 	}
-	else
+	else{
+		CString	str;
+		str.Format( _T("The file could not be opened.\nRead only?") );
+		AfxMessageBox( str, MB_ICONERROR );
 		return	false;
+	}
 }
 
 void
