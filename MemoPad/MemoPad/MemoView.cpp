@@ -89,18 +89,14 @@ CMemoView::GetStatus( void )
 BOOL
 CMemoView::PreTranslateMessage( MSG* pMsg )
 {
-	if	( pMsg->message == WM_KEYUP ||
-		  pMsg->message == WM_LBUTTONUP ){
-
-		// Just after the search has failed: Keep the indicator once.
-
-		if	( m_nFound < 0 )
-			m_nFound = 0;
-
-		// Other cases: Renew indicator.
-
-		else
-			SetTimer( TID_INDICATE, 0, NULL );
+	if	( pMsg->message == WM_CHAR ){
+		if	( !m_bInsert ){
+			int	xStart, xEnd;
+			GetSel( xStart, xEnd );
+			if	( xEnd == xStart )
+				SetSel( xStart, ++xEnd );
+			ReplaceSel( _T("") );
+		}
 	}
 	else if	( pMsg->message == WM_KEYDOWN ){
 
@@ -113,6 +109,19 @@ CMemoView::PreTranslateMessage( MSG* pMsg )
 			else
 				SetTimer( TID_INDICATE, 0, NULL );
 		}
+	}
+	else if	( pMsg->message == WM_KEYUP ||
+		  pMsg->message == WM_LBUTTONUP ){
+
+		// Just after the search has failed: Keep the indicator once.
+
+		if	( m_nFound < 0 )
+			m_nFound = 0;
+
+		// Other cases: Renew indicator.
+
+		else
+			SetTimer( TID_INDICATE, 0, NULL );
 	}
 
 	return	CEdit::PreTranslateMessage( pMsg );

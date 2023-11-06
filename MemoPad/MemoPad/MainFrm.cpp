@@ -9,6 +9,8 @@
 #define new DEBUG_NEW
 #endif
 
+#define	TID_INITIAL	1
+
 IMPLEMENT_DYNAMIC( CMainFrame, CFrameWnd )
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -40,19 +42,8 @@ CMainFrame::PreCreateWindow( CREATESTRUCT& cs )
 	wc.lpszClassName = pszClass;
 	AfxRegisterClass( &wc );
 
-	// Set window size and window class.
+	// Set window style and window class.
 
-	int	cx = GetSystemMetrics( SM_CXSCREEN );
-	int	cy = GetSystemMetrics( SM_CYSCREEN );
-
-	cx /= 2;
-	cy *= 9;
-	cy /= 10;
-
-	cs.cx = cx;
-	cs.cy = cy;
-	cs.x = -8;
-	cs.y = 1;
 	cs.dwExStyle &= ~WS_EX_CLIENTEDGE;
 	cs.lpszClass = pszClass;
 
@@ -112,6 +103,7 @@ BEGIN_MESSAGE_MAP( CMainFrame, CFrameWnd )
 	ON_WM_SETTINGCHANGE()
 	ON_WM_SYSCOLORCHANGE()
 	ON_WM_SYSCOMMAND()
+	ON_WM_TIMER()
 	ON_COMMAND( ID_WINDOW_TILE_HORZ, OnViewWordWrap )
 	ON_COMMAND( ID_WINDOW_TILE_VERT, OnViewMenuBar )
 	ON_COMMAND( ID_VIEW_STATUS_BAR, OnViewStatusBar )
@@ -155,6 +147,7 @@ CMainFrame::OnCreate( LPCREATESTRUCT lpCreateStruct )
 		pSysMenu->InsertMenu( 8,  MF_BYPOSITION | MF_POPUP, (UINT_PTR)pSubMenu->m_hMenu, L"&View" );
 	}
 
+	SetTimer( TID_INITIAL, 0, NULL );
 	return	0;
 }
 
@@ -246,6 +239,17 @@ CMainFrame::OnSysCommand( UINT nID, LPARAM lParam )
 
 	else
 		CFrameWnd::OnSysCommand( nID, lParam );
+}
+
+void
+CMainFrame::OnTimer( UINT_PTR nIDEvent )
+{
+	if	( nIDEvent == TID_INITIAL ){
+		KillTimer( nIDEvent );
+		PlaceWindow();
+	}
+	else
+		CFrameWnd::OnTimer( nIDEvent );
 }
 
 void
@@ -410,4 +414,28 @@ CMainFrame::CreateClient( void )
 	}
 
 	m_dark.Initialize( GetSafeHwnd() );
+}
+
+void
+CMainFrame::PlaceWindow( void )
+{
+	CPoint	pt( 0, 0 );
+
+	HMONITOR	hMonitor = MonitorFromPoint( pt, MONITOR_DEFAULTTONEAREST );
+	MONITORINFO	mi = { sizeof( mi ) };
+	GetMonitorInfo( hMonitor, &mi );
+
+	RECT	rcFrame, rcWindow;
+	DwmGetWindowAttribute( m_hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcFrame, sizeof( rcFrame ) );
+	GetWindowRect( &rcWindow );
+
+	CRect	rect;
+	int	cx = ( mi.rcWork.right - mi.rcWork.left ) / 2;
+
+	rect.left   = mi.rcWork.left	- ( rcFrame.left   - rcWindow.left );
+	rect.top    = mi.rcWork.top	- ( rcFrame.top    - rcWindow.top );
+	rect.right  = rect.left + cx	- ( rcFrame.right  - rcWindow.right ) * 2;
+	rect.bottom = mi.rcWork.bottom	- ( rcFrame.bottom - rcWindow.bottom );
+
+	SetWindowPos( NULL, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE );
 }

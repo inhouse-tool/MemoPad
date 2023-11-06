@@ -43,6 +43,7 @@ protected:
 	afx_msg	void	OnSettingChange( UINT uFlags, LPCTSTR lpszSection );
 	afx_msg	void	OnSysColorChange( void );
 	afx_msg	void	OnSysCommand( UINT nID, LPARAM lParam );
+	afx_msg	void	OnTimer( UINT_PTR nIDEvent );
 	afx_msg	void	OnViewWordWrap( void );
 	afx_msg	void	OnViewMenuBar( void );
 	afx_msg	void	OnViewStatusBar( void );
@@ -54,4 +55,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 		void	CreateClient( void );
+		void	PlaceWindow( void );
 };
