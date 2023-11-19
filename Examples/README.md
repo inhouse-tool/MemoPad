@@ -30,7 +30,7 @@ Double click ‚â Drag & Drop ‚Åƒtƒ@ƒCƒ‹‚ğŠJ‚­‚Ì‚Å‚Í‚È‚­,
 ### CEdit‚àWin11Notepad‚à‚·‚×‚Ä‚ÌUnicode‚ª•\¦‚Å‚«‚é‚í‚¯‚Å‚Í‚È‚¢Œ.txt
 
 ‚Å, ƒAƒvƒŠ‚ğì‚Á‚Ä‚İ‚Ä“®‚©‚µ‚Ä‚İ‚é‚Æ, ˆê•”‚Ì Unicode ‚ª³‚µ‚­•\¦‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½.
-[Unicode ˆê——](https://ja.wikipedia.org/wiki/Unicode%E4%B8%80%E8%A6%A7_10000-10FFF) ‚ÉŠî‚Ã‚¢‚Ä,
+[Unicode ˆê——](https://ja.wikipedia.org/wiki/Unicodeˆê——_10000-10FFF) ‚ÉŠî‚Ã‚¢‚Ä,
 ƒTƒ“ƒvƒŠƒ“ƒO‚ÅŠm”F‚µ‚Ä‚İ‚½‚Æ‚«‚Ég‚Á‚½‚Ì‚ª‚±‚ÌƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚Å‚·.
 
 u‚Ü‚ , [CEdit](https://learn.microsoft.com/en-us/cpp/mfc/reference/cedit-class) ‚Ì
@@ -39,6 +39,15 @@ Unicode ‘Î‰‚à‚»‚ñ‚È‚à‚ñ‚©‚Èv‚Æv‚¢‚Â‚Â, uWindows11 ‚Ì Notepad.exe ‚Í‚Ç‚¤‚È‚ñ‚
 ‚Ş‚µ‚ëu[CEdit](https://learn.microsoft.com/en-us/cpp/mfc/reference/cedit-class) ‚Å‚Í•\¦‚³‚ê‚é‚Ì‚É
  Notepad.exe ‚Å‚Í•\¦‚³‚ê‚È‚¢šv‚ª‚ ‚é‚Ì‚Í‹Á‚«‚Å‚µ‚½.
 u‘å‚µ‚½ˆá‚¢‚ª‚È‚¢‚È‚ç, ‚±‚ê‚Å‚¢‚¢‚âv‚ÆŒ‹˜_•t‚¯‚½Ÿ‘æ‚Å‚·.
+
+‚¨‚â? ‚±‚Ìƒtƒ@ƒCƒ‹, uMicrosoft Print to PDFv‚Åˆóü‚·‚é‚Æ,
+.pdf ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ª 0 ‚É‚È‚è‚Ü‚·‚Ë.
+
+’²‚×‚Ä‚İ‚é‚Æ, ‚Ç‚¤‚â‚ç UNICODE ‚Ì 1f0e0 ` 1f0f5 ‚Ì•¶š‚ª’n—‹‚Ì‚æ‚¤‚Å‚·.
+[Unicode ˆê——](https://ja.wikipedia.org/wiki/Unicodeˆê——_1F000-1FFFF) ‚É‚æ‚é‚Æ,
+ƒJ[ƒh ( ƒ^ƒƒbƒgƒJ[ƒh? ) ‚ğ•\‚·•¶šƒR[ƒh‚Ì—Ìˆæ‚Å‚·‚Ë.
+‚µ‚©‚µ, NG ‚È•¶š‚¾‚¯‚ªo‚È‚¢‚Æ‚©‰»‚¯‚é‚Ì‚È‚ç‚Æ‚à‚©‚­,
+.pdf ƒtƒ@ƒCƒ‹‘S‘Ì‚ª‚â‚ç‚ê‚é‚Æ‚Ícc.
 
 ### ‚Æ‚±‚ë‚Åcc
 
