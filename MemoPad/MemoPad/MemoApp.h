@@ -13,6 +13,11 @@ class CMemoApp : public CWinApp
 protected:
 	virtual	BOOL	InitInstance( void );
 	virtual	int	DoMessageBox( LPCTSTR lpszPrompt, UINT nType, UINT nIDPrompt );
+
+	afx_msg	void	OnInfoOnWeb( void );
+	afx_msg	void	OnLicense( void );
+	afx_msg	void	OnAppAbout( void );
+	DECLARE_MESSAGE_MAP()
 };
 
 extern	CMemoApp	theApp;

@@ -1148,6 +1148,22 @@ CDark::OnPaintGroupBox( HWND hWnd, HDC hDC, CRect rect )
 	rect.bottom -= 1;
 
 	GdipRoundRect( hDC, rect, CPoint( 8, 8 ), -1, m_crGray );
+
+	CWnd*	pWnd = CWnd::FromHandle( hWnd );
+	CString	strTitle;
+	pWnd->GetWindowText( strTitle );
+	if	( !strTitle.IsEmpty() ){
+		strTitle.Insert( 0, _T(" ") );
+		strTitle += _T(" ");
+
+		SetTextColor( hDC, m_crFore );
+		SetBkColor(   hDC, m_crBack );
+		SetBkMode( hDC, OPAQUE );
+
+		rect.top    -=  8;
+		rect.left   += 10;
+		DrawText( hDC, strTitle.GetBuffer(), strTitle.GetLength(), &rect, DT_SINGLELINE );
+	}
 }
 
 LRESULT
@@ -1184,6 +1200,17 @@ CDark::OnMsgComboBox( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		EndPaint( hWnd, &ps );
 		return	0;
 	}
+	else if	( uMsg == CB_SETCURSEL ){
+		LRESULT lr = DefSubclassProc( hWnd, uMsg, wParam, lParam );
+
+		HDC	hDC = GetDC( hWnd );
+		CRect	rect;
+		GetClientRect( hWnd, &rect );
+		OnPaintComboBox( hWnd, hDC, rect );
+		ReleaseDC( hWnd, hDC );
+
+		return	lr;
+	}
 
 	return	DefSubclassProc( hWnd, uMsg, wParam, lParam );
 }
@@ -1192,7 +1219,6 @@ void
 CDark::OnPaintComboBox( HWND hWnd, HDC hDC, CRect rect )
 {
 	HWND	hWndFocus = GetFocus();
-	HWND	hWndEdit  = GetWindow( hWnd, GW_CHILD );
 
 	CPoint	pt;
 	GetCursorPos( &pt );
@@ -1248,7 +1274,8 @@ CDark::OnPaintComboBox( HWND hWnd, HDC hDC, CRect rect )
 			CWnd*	pWnd = CWnd::FromHandle( hWnd );
 			CComboBox*	pCombo = (CComboBox*)pWnd;
 			int	iSel = pCombo->GetCurSel();
-			pCombo->GetLBText( iSel, strSel );
+			if	( iSel >= 0 )
+				pCombo->GetLBText( iSel, strSel );
 		}
 		HFONT	hFont = (HFONT)SendMessage( hWnd, WM_GETFONT, 0, 0 );
 		SelectObject( hDC, hFont );
@@ -1440,8 +1467,6 @@ CDark::OnMsgEdit( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 	else if	( uMsg == WM_KEYDOWN ){
 		RedrawWindow( hWnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW );
-
-		return	0;
 	}
 	else if	( uMsg == WM_KILLFOCUS ){
 		RedrawWindow( hWnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW );
@@ -1968,6 +1993,9 @@ static	DWORD	dwTimeLast;
 #define	CYBUTTON	16
 #define	CXICON		24
 
+#define	DB_FONTNAME	L"Arial"
+#define	DB_FONTSIZE	10
+
 void
 CDarkBox::SetUp( WPARAM wParam, LPARAM lParam )
 {
@@ -2073,6 +2101,8 @@ CDarkBox::FillDialog( BYTE* pb, DLGTEMPLATE* pTemp, WPARAM wParam, LPARAM lParam
 	UINT	uButton = wParam & MB_TYPEMASK;
 	int	nButton = SelectButtons( uButton, uIdButton, strButton );
 
+	// Setup the dialog template with minimum size.
+
 	pTemp->style = WS_POPUP | WS_CAPTION | DS_SETFONT;
 	pTemp->dwExtendedStyle = 0;
 	pTemp->cdit = 1 + ( pIcon? 1: 0 ) + nButton;
@@ -2080,8 +2110,6 @@ CDarkBox::FillDialog( BYTE* pb, DLGTEMPLATE* pTemp, WPARAM wParam, LPARAM lParam
 	pTemp->y  =   0;
 	pTemp->cx = 240;
 	pTemp->cy =  64;
-
-	int	cyFont = 10;
 
 	// Get the caption and message text.
 
@@ -2094,9 +2122,10 @@ CDarkBox::FillDialog( BYTE* pb, DLGTEMPLATE* pTemp, WPARAM wParam, LPARAM lParam
 	DWORD	cb = ( strCaption.GetLength()+1 ) * (int)sizeof( WCHAR );
 	memcpy( pw, strCaption.GetBuffer(), cb );
 	pw += strCaption.GetLength()+1;
-	*pw++ = cyFont;			// Font size
-	memcpy( pw, L"Arial", 6 * sizeof( WCHAR ) );
-	pw += 6;
+	*pw++ = DB_FONTSIZE;		// Font size
+	int	cchFontName = _countof( DB_FONTNAME );
+	memcpy( pw, DB_FONTNAME, cchFontName * sizeof( WCHAR ) );
+	pw += cchFontName;
 	pb = (BYTE*)pw;
 	pb = Align( pb );
 
@@ -2163,12 +2192,57 @@ CDarkBox::FillText( BYTE* pb, DLGTEMPLATE* pTemp, WPARAM wParam, LPARAM lParam )
 		memset( pTemp, 0, sizeof( *pTemp ) );
 	}
 
+	CString	strText = (WCHAR*)lParam;
+	{
+		// Borrow a DC on existing window.
+
+		CWnd*	pWnd = AfxGetMainWnd();
+		CDC*	pDC = pWnd->GetDC();
+		int	nDC = pDC->SaveDC();
+
+		// Base on the dialog font.
+
+		LOGFONT	lf = {};
+		lf.lfHeight = DB_FONTSIZE;
+		wcscpy_s( lf.lfFaceName, DB_FONTNAME );
+		CFont	font;
+		font.CreateFontIndirect( &lf );
+		pDC->SelectObject( &font );
+
+		// Get 'Dialog Unit' with compensation for 'All uppercase string'.
+
+		CSize	size = pDC->GetTextExtent( _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") );
+		double	dx = ( (double)size.cx / 52 ) / 4;
+		double	dy =   (double)size.cy        / 8;
+		dx /= 1.08;
+
+		// Calculate a rectagle for the text.
+
+		CRect	rect;
+		pDC->DrawText( strText, &rect, DT_CALCRECT );
+
+		int	cx = (int)( ( rect.Width() / dx ) + (NMARGIN*2) );
+		int	cy = (int)( ( rect.Height()/ dy ) + (NMARGIN*3) + CYBUTTON );
+		UINT	uIcon = wParam & MB_ICONMASK;
+		if	( uIcon )
+			cx += CXICON;
+
+		// Enlarge dialog rectangle when the text requires larger size.
+
+		if	( cx > pTemp->cx )
+			pTemp->cx = cx;
+		if	( cy > pTemp->cy )
+			pTemp->cy = cy;
+
+		pDC->RestoreDC( nDC );
+		pWnd->ReleaseDC( pDC );
+	}
+
 	DLGITEMTEMPLATE*	pItem = (DLGITEMTEMPLATE*)pb;
 
 	UINT	uIcon = wParam & MB_ICONMASK;
 	LPWSTR	pIcon = SelectIcon( uIcon );
-	CString	strText = (WCHAR*)lParam;
-	int	yButton  = pTemp->cy - 20;
+	int	yButton  = pTemp->cy - CYBUTTON - NMARGIN;
 
 	pItem->style = WS_CHILD | WS_VISIBLE | SS_LEFT;
 	pItem->dwExtendedStyle = 0;
@@ -2331,6 +2405,8 @@ CDarkBox::SelectIcon( UINT uIcon )
 		pIcon = IDI_EXCLAMATION;
 	else if	( uIcon == MB_ICONASTERISK )
 		pIcon = IDI_ASTERISK;
+	else if	( uIcon == MB_ICONMASK )
+		pIcon = MAKEINTRESOURCE( IDR_MAINFRAME );
 
 	return	pIcon;
 }

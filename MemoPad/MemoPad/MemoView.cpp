@@ -21,7 +21,9 @@
 
 TCHAR*
 CMemoView::m_apchEncode[]
-	= { _T("ANSI"), _T("Shift JIS"), _T("UTF-8"), _T("UTF-8 with BOM"), _T("UTF-16LE"), _T("UTF-16BE"), _T("Unknown"), NULL };
+	= { _T("ASCII"), _T("Shift JIS"),
+	    _T("UTF-8"), _T("UTF-8 with BOM"), _T("UTF-16LE with BOM"), _T("UTF-16BE with BOM"),
+	    _T("Unknown"), NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -29,9 +31,10 @@ CMemoView::m_apchEncode[]
 CMemoView::CMemoView( void )
 {
 	CWinApp*	pApp = AfxGetApp();
-	m_bDiscardModified = pApp->GetProfileInt( _T("Settings"), _T("DiscardModified"), 0 );
-	m_crText           = pApp->GetProfileInt( _T("Settings"), _T("ColorText"),      -1 );
-	m_crBack           = pApp->GetProfileInt( _T("Settings"), _T("ColorBack"),      -1 );
+	m_bDiscardModified = pApp->GetProfileInt(    _T("Settings"), _T("DiscardModified"), 0 );
+	m_crText           = pApp->GetProfileInt(    _T("Settings"), _T("ColorText"),      -1 );
+	m_crBack           = pApp->GetProfileInt(    _T("Settings"), _T("ColorBack"),      -1 );
+
 	m_brBack = CreateSolidBrush( m_crBack );
 
 	m_bInsert = true;
@@ -41,7 +44,7 @@ CMemoView::CMemoView( void )
 
 	m_cbBOM   = 0;
 	m_dwBOM   = 0;
-	m_eEncode = ANSI;
+	m_eEncode = ASCII;
 	m_cbEOL   = 0;
 
 	m_bFindUp     = true;
@@ -143,6 +146,7 @@ BEGIN_MESSAGE_MAP( CMemoView, CEdit )
 	ON_COMMAND( ID_FILE_SAVE,    OnFileSave )
 	ON_COMMAND( ID_FILE_SAVE_AS, OnFileSaveAs )
 	ON_COMMAND( ID_FILE_CLOSE,   OnFileClose )
+	ON_COMMAND( ID_FILE_PRINT,   OnFilePrint )
 	ON_COMMAND( ID_FILE_UPDATE,  OnFileProperties )
 	ON_COMMAND( ID_EDIT_UNDO,          OnEditUndo )
 	ON_COMMAND( ID_EDIT_REDO,          OnEditRedo )
@@ -199,6 +203,8 @@ CMemoView::OnCreate( LPCREATESTRUCT lpCreateStruct )
 		}
 		LoadFile( strArg );
 	}
+
+	SetTimer( TID_INDICATE, 0, NULL );
 
 	return	0;
 }
@@ -354,7 +360,8 @@ CMemoView::OnFileOpen( void )
 {
 	// With unsaved modified file: Warn it.
 
-	ConfirmDiscard();
+	if	( !ConfirmDiscard() )
+		return;
 
 	// Open the file dialog.
 
@@ -473,14 +480,21 @@ CMemoView::OnFileClose( void )
 {
 	// With unsaved modified file: Warn it.
 
-	ConfirmDiscard();
+	if	( !ConfirmDiscard() )
+		return;
 
 	// Then close the application.
 
 	AfxGetMainWnd()->PostMessage( WM_CLOSE, 0, 0 );
 }
 
-#include "PropertyDlg.h"
+void
+CMemoView::OnFilePrint( void )
+{
+	CPrintDlg	dlg;
+	if	( dlg.DoModal() == IDOK )
+		Print( dlg.m_param );
+}
 
 void
 CMemoView::OnFileProperties( void )
@@ -508,7 +522,7 @@ CMemoView::OnFileProperties( void )
 	strProperties += _T("\r\n" );
 
 	int	i;
-	if	( m_eEncode == ANSI )
+	if	( m_eEncode == ASCII )
 		i = 0;
 	else if	( m_eEncode == ShiftJIS )
 		i = 1;
@@ -880,9 +894,9 @@ CMemoView::LoadFile( CString strFile )
 		GetTextEncode( pbData, cbData );
 		CHAR*	pbText = (CHAR*)( pbData + m_cbBOM );
 
-		// ANSI or Shift JIS encoded: Take the image as ANSI text.
+		// ASCII or Shift JIS encoded: Take the image as ANSI text.
 
-		if	( m_eEncode == ANSI || m_eEncode == ShiftJIS )
+		if	( m_eEncode == ASCII || m_eEncode == ShiftJIS )
 			SetWindowTextA( GetSafeHwnd(), pbText );
 
 		// UTF-8 encoded: Take the image as UTF-8 encoded sequence.
@@ -958,13 +972,18 @@ CMemoView::SaveFile( CString strFile )
 		BYTE*	pbData = NULL;
 		DWORD	cbData = 0;
 
-		// ANSI or Shift JIS encoded: Get the image as ANSI text.
+		// ASCII or Shift JIS encoded: Get the image as ANSI text.
 
-		if	( m_eEncode == ANSI || m_eEncode == ShiftJIS ){
+		if	( m_eEncode == ASCII || m_eEncode == ShiftJIS ){
 			cbData = strLines.GetLength() * sizeof( WCHAR ) +1;
 			pbData = new BYTE[cbData];
 			memset( pbData, 0, cbData );
 			GetWindowTextA( GetSafeHwnd(), (char*)pbData, (int)cbData );
+			if	( m_cbEOL == 1 ){
+				CStringA strLinesA = (char*)pbData;
+				strLinesA.Replace( "\r\n", "\n" );
+				memcpy( pbData, strLinesA.GetBuffer(), strLinesA.GetLength()+1 );
+			}
 			cbData = (int)strlen( (char*)pbData );
 		}
 
@@ -1028,7 +1047,7 @@ CMemoView::SaveFile( CString strFile )
 	}
 }
 
-void
+bool
 CMemoView::ConfirmDiscard( void )
 {
 	// With unsaved modified file: Warn it.
@@ -1047,11 +1066,13 @@ CMemoView::ConfirmDiscard( void )
 		int	iAnswer = AfxMessageBox( strQuestion, MB_ICONEXCLAMATION | MB_YESNOCANCEL | MB_DEFBUTTON3, 0 );
 
 		if	( iAnswer == IDCANCEL )
-			return;
+			return	false;
 
 		else if	( iAnswer == IDYES )
 			OnFileSave();
 	}
+
+	return	true;
 }
 
 DWORD
@@ -1076,7 +1097,7 @@ CMemoView::GetSizeOnFile( CString strFile, bool bModified )
 
 	int	cbData = 0;
 
-	if	( m_eEncode == ANSI || m_eEncode == ShiftJIS ){
+	if	( m_eEncode == ASCII || m_eEncode == ShiftJIS ){
 		BYTE*	pbData = NULL;
 		cbData = strLines.GetLength() * sizeof( WCHAR ) +1;
 		pbData = new BYTE[cbData];
@@ -1218,7 +1239,7 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 			for	( i = 1; i < nEncode; i++ )
 				if	( aeEncode[i] != aeEncode[0] )
 					break;	
-			m_eEncode =	( nEncode == 0 )?	ANSI:
+			m_eEncode =	( nEncode == 0 )?	ASCII:
 					( i >= nEncode )?	aeEncode[0]:
 								unknown;
 		}
@@ -1251,7 +1272,7 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 	{
 		CString	str;
 		int	i;
-		if	( m_eEncode == ANSI )
+		if	( m_eEncode == ASCII )
 			i = 0;
 		else if	( m_eEncode == ShiftJIS )
 			i = 1;
@@ -1264,8 +1285,6 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 		else
 			i = 6;
 		str = m_apchEncode[i];
-		if	( m_cbBOM )
-			str += _T(" /w BOM");
 		if	( cbData == 0 )
 			str = _T("");
 		str += _T(" ");
@@ -1286,7 +1305,7 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 void
 CMemoView::GetLowestEncode( Encode& eEncode )
 {
-	// If every character is under 0x7f, ANSI encode is enough.
+	// If every character is under 0x7f, ASCII encode is enough.
 
 	int	cch = m_strLines.GetLength();
 	int	i;
@@ -1294,7 +1313,7 @@ CMemoView::GetLowestEncode( Encode& eEncode )
 		if	( m_strLines[i] > 0x7e )
 			break;
 	if	( i >= cch ){
-		eEncode = ANSI;
+		eEncode = ASCII;
 		return;
 	}
 
@@ -1335,15 +1354,15 @@ CMemoView::SetDefaultEncode( CFileDialog& dlg, Encode eEncode )
 		dlg.AddControlItem( IDC_COMBO_ENCODE, dw, m_apchEncode[dw] );
 
 	DWORD	dwDefault;
-	if	( m_eEncode == ANSI )
+	if	( m_eEncode == ASCII )
 		dwDefault = 0;
 	else if	( m_eEncode == ShiftJIS )
 		dwDefault = 1;
 	else if	( m_eEncode == UTF8 )
 		dwDefault = 2;
-	else if	( m_eEncode == UTF16BE )
-		dwDefault = 4;
 	else if	( m_eEncode == UTF16LE )
+		dwDefault = 4;
+	else if	( m_eEncode == UTF16BE )
 		dwDefault = 5;
 	else
 		dwDefault = 0;
@@ -1358,7 +1377,7 @@ CMemoView::GetSpecifiedEncode( CFileDialog& dlg )
 	dlg.GetSelectedControlItem( IDC_COMBO_ENCODE, dwEncode );
 
 	if	( dwEncode == 0 ){
-		m_eEncode = ANSI;
+		m_eEncode = ASCII;
 		m_cbBOM = 0;
 		m_dwBOM = 0;
 	}
@@ -1492,15 +1511,15 @@ CMemoView::TakeDiff( void )
 			if	( iLast >= 0 ){
 				CUndo&	undo = m_aUndo[iLast];
 
-				if	( undo.iChar == iFore ){
+				if	( undo.m_iChar == iFore ){
 
 					// Insert after Delete to the same column: Merge them into one Replace.
 
-					if	( undo.strText[0] == 'D' ){
-						undo.strText.Delete( 0, 1 );
-						undo.strText.Insert( 0, _T("R") );
-						undo.strText += _T("\b");
-						undo.strText += strDiff;
+					if	( undo.m_strText[0] == 'D' ){
+						undo.m_strText.Delete( 0, 1 );
+						undo.m_strText.Insert( 0, _T("R") );
+						undo.m_strText += _T("\b");
+						undo.m_strText += strDiff;
 						break;
 					}
 				}
@@ -1508,16 +1527,16 @@ CMemoView::TakeDiff( void )
 				else{
 					// Get length of preceeding Insert.
 
-					int	x = undo.strText.ReverseFind( '\b' );
+					int	x = undo.m_strText.ReverseFind( '\b' );
 					if	( x >= 0 )
-						x = undo.strText.GetLength() - x - 1;
+						x = undo.m_strText.GetLength() - x - 1;
 					else
-						x = undo.strText.GetLength() - 1;
+						x = undo.m_strText.GetLength() - 1;
 
 					// Continued Insert after the same column: Merge it into one operation.
 
-					if	( undo.iChar + x == iFore ){
-						undo.strText += strDiff;
+					if	( undo.m_iChar + x == iFore ){
+						undo.m_strText += strDiff;
 						break;
 					}
 				}
@@ -1528,8 +1547,8 @@ CMemoView::TakeDiff( void )
 
 		{
 			CUndo	undo;
-			undo.iChar = iFore;
-			undo.strText = chMode + strDiff;
+			undo.m_iChar = iFore;
+			undo.m_strText = chMode + strDiff;
 			m_aUndo.Add( undo );
 		}
 	}while	( false );
@@ -1563,9 +1582,9 @@ CMemoView::Undo( void )
 		// Take the last action.
 
 		INT_PTR	i = --m_iUndo;
-		TCHAR	chMode  = m_aUndo[i].strText[0];
-		CString	strText = m_aUndo[i].strText.Mid( 1 );
-		int	iChar   = m_aUndo[i].iChar;
+		TCHAR	chMode  = m_aUndo[i].m_strText[0];
+		CString	strText = m_aUndo[i].m_strText.Mid( 1 );
+		int	iChar   = m_aUndo[i].m_iChar;
 		int	iEnd    = iChar;
 
 		// The action was 'Insert', delete it.
@@ -1621,9 +1640,9 @@ CMemoView::Redo( void )
 		// Take the last Undo.
 
 		INT_PTR	i = m_iUndo++;
-		TCHAR	chMode  = m_aUndo[i].strText[0];
-		CString	strText = m_aUndo[i].strText.Mid( 1 );
-		int	iChar   = m_aUndo[i].iChar;
+		TCHAR	chMode  = m_aUndo[i].m_strText[0];
+		CString	strText = m_aUndo[i].m_strText.Mid( 1 );
+		int	iChar   = m_aUndo[i].m_iChar;
 		int	iEnd    = iChar;
 
 		// The action was 'Insert', do it again.
@@ -1722,4 +1741,494 @@ CMemoView::CommaDigitsOf( int nValue )
 		str.Insert( i, L"," );
 
 	return	str;
+}
+
+#include <Winspool.h>
+
+bool
+CMemoView::Print( CPrintParam& param )
+{
+	CWaitCursor	wc;
+
+	bool	bDone = false;
+
+	LPTSTR	szPrinter = param.m_strPrinter.GetBuffer();
+	HANDLE	hPrinter = NULL;
+	if	( !OpenPrinter( szPrinter, (LPHANDLE)&hPrinter, NULL ) )
+		return	bDone;
+
+	DWORD	cbProp = DocumentProperties( NULL, hPrinter, szPrinter, NULL, NULL, 0 );
+	HGLOBAL	hDevMode = GlobalAlloc( GHND, cbProp );
+
+	if	( hDevMode ){
+		DEVMODE* pDevMode = (DEVMODE*)GlobalLock( hDevMode );
+		if	( pDevMode ){
+			memset( pDevMode, 0, sizeof( *pDevMode ) );
+
+			LONG	lFlag = DocumentProperties( NULL, hPrinter, szPrinter, pDevMode, NULL, DM_OUT_BUFFER );
+
+			pDevMode->dmPaperSize	= param.m_iPaperSize;
+			pDevMode->dmOrientation	= param.m_bLandscape? DMORIENT_LANDSCAPE: DMORIENT_PORTRAIT;
+
+			CDC	dc;
+			if	( dc.CreateDC( _T("WINSPOOL"), szPrinter, NULL, pDevMode ) ){
+				DOCINFO	di = {};
+				di.cbSize = sizeof( di );
+				di.lpszDocName  = m_strFile.GetBuffer();
+				di.lpszOutput   = NULL;
+				di.lpszDatatype = NULL;
+				di.fwType       = 0;
+
+				//NOTE:
+				// StartDoc throws unfounded exception in debug session with VS2022.
+				// ( https://github.com/wxWidgets/wxWidgets/issues/23850 )
+				// Turn off C++ Exceptions / winrt::hresult_error by Exeption Settings.
+				// ( Debug -> Windows -> Exception Settings )
+				// And turn off [rethrow].
+				// ( https://developercommunity.visualstudio.com/t/Cannot-catch-C-exception/1681838 )
+
+				int	iJob = dc.StartDoc( &di );
+
+				if	( iJob > 0 )
+					PrintContent( &dc, param );
+
+				dc.DeleteDC ();
+				bDone = true;
+			}
+			GlobalUnlock( hDevMode );
+		}
+		GlobalFree( hDevMode );
+	}
+
+	ClosePrinter( hPrinter );
+
+	return	bDone;
+}
+
+#define	mm2inch( value )	( MulDiv( value, 1000, 254 ) )
+
+void
+CMemoView::PrintContent( CDC* pDC, CPrintParam& param )
+{
+	// Intialize the device context with inch.
+
+	pDC->SetMapMode( MM_LOENGLISH );
+	pDC->SelectObject( m_font.m_hObject );
+	pDC->SetTextColor( RGB( 0, 0, 0 ) );
+
+	// Calculate sizes in inch.
+
+	CRect	rectPage;
+	CRect	rectTop;
+	CRect	rectHeader,
+		rectFooter;
+	CPoint	ptLine( 0, 0 );
+	{
+		LOGFONT	lf = {};
+		int	cx =  mm2inch( pDC->GetDeviceCaps( HORZSIZE ) );
+		int	cy = -mm2inch( pDC->GetDeviceCaps( VERTSIZE ) );
+		LONG	lMarginTop    = mm2inch( param.m_nMarginT );
+		LONG	lMarginBottom = mm2inch( param.m_nMarginB );
+		m_font.GetLogFont( &lf );
+
+		rectPage.SetRect( 0, cy, cx, 0 );
+		rectPage.left  += mm2inch( param.m_nMarginL );
+		rectPage.right -= mm2inch( param.m_nMarginR );
+
+		rectHeader = rectPage;
+		rectFooter = rectPage;
+		rectFooter.bottom = rectFooter.top    + lMarginTop;
+		rectHeader.top    = rectHeader.bottom - lMarginBottom;
+
+		rectPage.top    += lMarginTop;
+		rectPage.bottom -= lMarginBottom;
+
+		CSize	size = pDC->GetTextExtent( _T("W") );
+		ptLine.Offset( 0, -size.cy );
+		rectTop.SetRect( rectPage.left, rectPage.bottom, rectPage.right, rectPage.bottom + ptLine.y );
+
+		pDC->SetViewportOrg( rectPage.left, rectPage.bottom );
+	}
+
+	// Print out all lines.
+
+	CString	strLines = m_strLines;
+	strLines.Replace( _T("\r\r\n" ), _T("\r\n" ) );
+	strLines += _T("\r\n");
+
+	UINT	uPage = 0;
+	int	xStart = 0, xEnd = 0;
+	CString	strBroken;
+
+	while	( xEnd >= 0 ){
+
+		// Start a page.
+
+		bool	bPageToPrint = IsPageToPrint( ++uPage, param.m_uaPages );
+		if	( bPageToPrint ){
+			pDC->StartPage();
+			PrintMargin( pDC, rectHeader, param.m_strHeader, -(int)uPage );
+		}
+
+		CRect	rectLine = rectTop;
+
+		while	( xEnd >= 0 ){
+
+			CString	strLine;
+
+			// For the original lines:
+			// Get a line terminated with CR/LF.
+			// ( and just in case single LF, not CR/LF, is left, remove it. )
+
+			if	( strBroken.IsEmpty() ){
+				xEnd = strLines.Find( _T("\r\n"), xStart );
+				strLine = strLines.Mid( xStart, xEnd-xStart );
+				strLine.Remove( '\n' );
+			}
+
+			// For the page-broken lines:
+			// Get a line out of the broken lines.
+			// ( and just after the broken lines has done, return to the original lines. )
+
+			else{
+				int	x = strBroken.Find( _T("\r\n"), 0 );
+				strLine = strBroken.Left( x );
+				strBroken.Delete( 0, x+2 );
+				if	( strBroken.IsEmpty() )
+					xStart = xEnd+2;
+			}
+
+			// Calculate the size of the line(s).
+			// ( A line in the file may be expanded into multiple lines in DC. )
+
+			CRect	rectDraw = rectLine;
+			PrintLine( pDC, rectDraw, strLine, 0, param.m_nTab );
+
+			// When the calculated size get out of page bounds:
+
+			if	( rectDraw.bottom < rectPage.top ){
+				if	( strBroken.IsEmpty() )
+					strBroken = strLine + _T("\r\n");
+
+				// There's a room for one line at least: Continue to enter devided line(s).
+
+				if	( rectPage.top - rectLine.bottom < ptLine.y )
+					continue;
+
+				// There's no room for a line: Skip to the next page.
+
+				else{
+					if	( strBroken != strLine + _T("\r\n") )
+						strBroken.Insert( 0, strLine + _T("\r\n") );
+					break;
+				}
+			}
+
+			// Print out the line(s).
+
+			if	( bPageToPrint )
+				PrintLine( pDC, rectDraw, strLine, ptLine.y, param.m_nTab );
+
+			// Make a space for the empty line.
+
+			if	( strLine.IsEmpty() )
+				rectDraw = rectLine;
+
+			// Every single line in a document is done: Break to finish the last page.
+
+			if	( xEnd < 0 )
+				break;
+
+			// Skip to the next original line beyond CR/LF.
+
+			if	( strBroken.IsEmpty() )
+				xStart = xEnd+2;
+
+			// Make a space for drawn line(s).
+
+			int	nLine = rectDraw.Height() / rectLine.Height();
+			for	( int i = 0; i < nLine; i++ )
+				rectLine += ptLine;
+		}
+
+		// Finish the page.
+
+		if	( bPageToPrint ){
+			PrintMargin( pDC, rectFooter, param.m_strFooter, (int)uPage );
+			pDC->EndPage();
+		}
+	}
+
+	pDC->EndDoc();
+}
+
+void
+CMemoView::PrintLine( CDC* pDC, CRect& rectDraw, CString& strLine, int cyLine, int nTab )
+{
+	CRect	rectLine = rectDraw;
+	UINT	uFormat = DT_TOP | DT_LEFT | DT_NOPREFIX | DT_WORDBREAK;
+	CString	strBroken;
+
+	CSize	sizeLine;
+	int	cxTab, cxSpace;
+	{
+		CString	strTab( 'W', nTab );
+		CSize	sizeTab = pDC->GetTextExtent( strTab );
+		cxTab = sizeTab.cx;
+		sizeLine.cy = sizeTab.cy;
+		CSize	sizeSpace = pDC->GetTextExtent( _T(" ") );
+		cxSpace = sizeSpace.cx;
+	}
+
+	// Calculate the size and break line.
+
+	if	( !cyLine ){
+
+		int	cx = 0;
+		CRect	rect;
+
+		// Detab the line ( since DT_TABSTOP cannot be used with DT_CALCRECT ).
+
+		CString	strUnbroken = strLine;
+		for	( ;; ){
+			int	x = strUnbroken.FindOneOf( _T(" \t") );
+			if	( x < 0 )
+				break;
+
+			CString	strWord = strUnbroken.Left( x );
+
+			rect = rectLine;
+			pDC->DrawText( strWord, &rect, uFormat | DT_CALCRECT );
+
+			if	( cx + rect.Width()  > rectLine.Width() ||
+				       rect.Height() < rectLine.Height()   ){
+				if	( cx )
+					strBroken += _T("\r\n");
+				rect = rectLine;
+				cx = 0;
+				BreakLine( pDC, rect, strWord, cx, uFormat );
+			}
+			else
+				cx += rect.Width();
+
+			strBroken += strWord;
+			if	( strUnbroken[x] == '\t' ){
+				cx = ( ( cx / cxTab )+1 ) * cxTab;
+				strBroken += _T("\t");
+				x++;
+			}
+			else if	( strUnbroken[x] == ' ' ){
+				while	( strUnbroken[x] == ' ' ){
+					cx += cxSpace;
+					strBroken += _T(" ");
+					x++;
+				}
+			}
+
+			strUnbroken.Delete( 0, x );
+		}
+
+		// Break the left line.
+
+		rect = rectLine;
+		pDC->DrawText( strUnbroken, &rect, uFormat | DT_CALCRECT );
+
+		if	( cx + rect.Width()  > rectLine.Width() ||
+			       rect.Height() < rectLine.Height()   ){
+			if	( cx )
+				strBroken += _T("\r\n");
+			rect = rectLine;
+			cx = 0;
+			BreakLine( pDC, rect, strUnbroken, cx, uFormat );
+		}
+		else
+			cx += rect.Width();
+
+		// Get size of broken line(s).
+
+		strLine = strBroken + strUnbroken;
+		rectDraw = rectLine;
+		pDC->DrawText( strLine, &rectDraw, uFormat | DT_CALCRECT );
+		rectDraw.right = rectLine.right;
+	}
+
+	// Draw broken line(s) into the calculated rectangle.
+
+	else{
+		CString	strBroken = strLine;
+		int	xStart = 0;
+		while	( xStart >= 0 ){
+			CString	strRow = strBroken.Tokenize( _T("\r\n"), xStart );
+			if	( strRow.IsEmpty() )
+				break;
+
+			// Print a row in the line(s).
+
+			CRect	rect;
+			int	cx = 0;
+			for	( int x = 0; ( x = strRow.Find( '\t', 0 ) ) >= 0; ){
+
+				// Print words before tab.
+
+				CString	strTabbed = strRow.Left( x );
+
+				rect = rectLine;
+				rect.left += cx;
+				pDC->DrawText( strTabbed, &rect, uFormat );
+				pDC->DrawText( strTabbed, &rect, uFormat | DT_CALCRECT );
+
+				// Skip tab width.
+
+				cx += rect.Width();
+				cx = ( ( cx / cxTab )+1 ) * cxTab;
+				x++;
+
+				strRow.Delete( 0, x );
+			}
+
+			// Print words out of tab.
+
+			rect = rectLine;
+			rect.left += cx;
+			pDC->DrawText( strRow, &rect, uFormat );
+			pDC->DrawText( strRow, &rect, uFormat | DT_CALCRECT );
+
+			// Shift to the next row.
+
+			rectLine.top += cyLine;
+		}
+	}
+}
+
+void
+CMemoView::BreakLine( CDC* pDC, CRect& rectLine, CString& strLine, int& cx, UINT uFormat )
+{
+	CRect	rectDraw = rectLine;
+	CString	strFull, strBroken;
+	int	cxLast = 0;
+
+	while	( !strLine.IsEmpty() ){
+		for	( int i = 0; ; i++ ){
+			strFull = strLine.Left( i );
+			rectDraw = rectLine;
+			rectDraw.left += cx;
+
+			pDC->DrawText( strFull, &rectDraw, uFormat | DT_CALCRECT );
+
+			if	( rectDraw.Width()  > rectLine.Width() ||
+				  rectDraw.Height() < rectLine.Height() ){							 
+				strFull = strLine.Left( --i );
+				strLine.Delete( 0, i );
+				strBroken += strFull + _T("\r\n");
+				break;
+			}
+			else if	( i == strLine.GetLength() ){
+				strBroken += strLine;
+				rectDraw = rectLine;
+				pDC->DrawText( strLine, &rectDraw, uFormat | DT_CALCRECT );
+				cx = rectDraw.Width();
+				strLine.Empty();
+				break;
+			}
+		}
+	}
+
+	strLine = strBroken;
+	pDC->DrawText( strLine, &rectLine, uFormat | DT_CALCRECT );
+}
+
+void
+CMemoView::PrintMargin( CDC* pDC, CRect rectMargin, CString strMargin, int nPage )
+{
+	if	( strMargin.IsEmpty() )
+		return;
+
+	UINT	uFormat = DT_SINGLELINE | DT_VCENTER;
+	bool	bHeader = false;
+
+	if	( nPage < 0 ){
+		nPage = -nPage;
+		bHeader = true;
+	}
+
+	if	( strMargin.Left( 2 ) == _T("&l") ){
+		strMargin.Delete( 0, 2 );
+		uFormat |= DT_LEFT;
+	}
+	else if	( strMargin.Left( 2 ) == _T("&c") ){
+		strMargin.Delete( 0, 2 );
+		uFormat |= DT_CENTER;
+	}
+	else if	( strMargin.Left( 2 ) == _T("&r") ){
+		strMargin.Delete( 0, 2 );
+		uFormat |= DT_RIGHT;
+	}
+	else{
+		uFormat |= DT_CENTER;
+	}
+
+	CString	str;
+	int	x;
+
+	x = strMargin.Find( _T("&d") );
+	if	( x >= 0 ){
+		strMargin.Delete( x, 2 );
+		CTime	t = CTime::GetCurrentTime();
+		str = t.Format( _T("%Y/%m/%d") );
+		strMargin.Insert( x, str );
+	}
+	x = strMargin.Find( _T("&t") );
+	if	( x >= 0 ){
+		strMargin.Delete( x, 2 );
+		CTime	t = CTime::GetCurrentTime();
+		str = t.Format( _T("%H:%M:%S") );
+		strMargin.Insert( x, str );
+	}
+	x = strMargin.Find( _T("&f") );
+	if	( x >= 0 ){
+		strMargin.Delete( x, 2 );
+		int	i = m_strFile.ReverseFind( '\\' );
+		str = m_strFile.Mid( i+1 );
+		strMargin.Insert( x, str );
+	}
+	x = strMargin.Find( _T("&p") );
+	if	( x >= 0 ){
+		strMargin.Delete( x, 2 );
+		str.Format( _T("%d"), nPage );
+		strMargin.Insert( x, str );
+	}
+	x = strMargin.Find( _T("&b") );
+	if	( x >= 0 ){
+		strMargin.Delete( x, 2 );
+		int	y = rectMargin.bottom-rectMargin.Height()/2;
+		CSize	size = pDC->GetTextExtent( _T("W") );
+		if	( bHeader )
+			y -= size.cy;
+		else
+			y += size.cy;
+		pDC->MoveTo( rectMargin.left, y );
+		pDC->LineTo( rectMargin.right, y );
+	}
+
+	pDC->DrawText( strMargin, &rectMargin, uFormat );
+}
+
+bool
+CMemoView::IsPageToPrint( UINT uPage, CUIntArray& uaPages )
+{
+	INT_PTR	n = uaPages.GetCount();
+	if	( !n )
+		return	true;
+
+	for	( INT_PTR i = 0; i < n; i++ )
+		if	( uaPages[i] == uPage )
+			return	true;
+
+	for	( INT_PTR i = 0; i < n; i++ )
+		if	( uaPages[i] == 0 )
+			if	( uaPages[i-1] <= uPage &&
+				  uaPages[i+1] >= uPage )
+				return	true;
+
+	return	false;
 }

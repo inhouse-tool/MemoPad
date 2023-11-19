@@ -10,6 +10,8 @@
 #define IDD_PROPERTIES                  310
 #define IDD_FIND                        311
 #define IDD_FONT                        312
+#define IDD_PRINT                       313
+#define IDD_MARGINS                     315
 #define IDC_EDIT_FIND                   1000
 #define IDC_EDIT_REPLACE                1001
 #define IDC_BUTTON_NEXT                 1002
@@ -35,16 +37,42 @@
 #define IDC_STATIC_MODIFIED             1022
 #define IDC_STATIC_PROPERTY             1023
 #define IDC_STATIC_UNITS                1024
+#define IDC_CHECK1                      1025
+#define IDC_CHECK_REMOTE                1025
+#define IDC_COMBO1                      1026
+#define IDC_COMBO_PRINTERS              1026
+#define IDC_STATIC_STATUS               1027
+#define IDC_RADIO_PAGE_ALL              1028
+#define IDC_RADIO_PAGE_SELECT           1029
+#define IDC_EDIT_PAGES                  1030
+#define IDC_RADIO_MM                    1032
+#define IDC_RADIO_INCH                  1033
+#define IDC_RADIO_PORTRAIT              1034
+#define IDC_RADIO_LANDSCAPE             1035
+#define IDC_STATIC_ORIENT               1036
+#define IDC_STATIC_SIZE                 1037
+#define IDC_BUTTON_MARGINS              1038
+#define IDC_EDIT_TOP                    1039
+#define IDC_EDIT_HEADER                 1040
+#define IDC_STATIC_UNIT                 1042
+#define IDC_EDIT_LEFT                   1043
+#define IDC_EDIT_RIGHT                  1044
+#define IDC_EDIT_BOTTOM                 1045
+#define IDC_EDIT_FOOTER                 1046
 #define ID_VIEW_WORDWRAP                32782
 #define ID_VIEW_MENUBAR                 32783
+#define ID_FILE_PAGESETUP               32784
+#define ID_HELP_VIEWINFOONWEBSITE       32789
+#define ID_HELP_ABOUTMEMOPAD            32790
+#define ID_HELP_LICENSEANNOUNCEMENT     32791
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        313
-#define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1025
+#define _APS_NEXT_RESOURCE_VALUE        317
+#define _APS_NEXT_COMMAND_VALUE         32792
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           133
 #endif
 #endif

@@ -4,6 +4,8 @@
 #pragma once
 #include "FindDlg.h"
 #include "FontDlg.h"
+#include "PrintDlg.h"
+#include "PropertyDlg.h"
 
 class	CMemoView : public CEdit
 {
@@ -43,7 +45,7 @@ protected:
 		DWORD	m_dwBOM;
 		enum	Encode{
 			unknown,
-			ANSI,
+			ASCII,
 			ShiftJIS,
 			UTF8,
 			UTF16BE,
@@ -62,12 +64,12 @@ protected:
 			m_strReplace;
 	class	CUndo{
 	public:
-			int	iChar;
-			CString	strText;
+			int	m_iChar;
+			CString	m_strText;
 		CUndo( void )
 		{
-			iChar = 0;
-			strText.Empty();
+			m_iChar = 0;
+			m_strText.Empty();
 		}
 	};
 		CArray	<CUndo, CUndo&>
@@ -89,6 +91,7 @@ protected:
 	afx_msg	void	OnFileSave( void );
 	afx_msg	void	OnFileSaveAs( void );
 	afx_msg	void	OnFileClose( void );
+	afx_msg	void	OnFilePrint( void );
 	afx_msg	void	OnFileProperties( void );
 	afx_msg	void	OnEditUndo( void );
 	afx_msg	void	OnEditRedo( void );
@@ -115,7 +118,7 @@ protected:
 
 		bool	LoadFile( CString strFile );
 		bool	SaveFile( CString strFile );
-		void	ConfirmDiscard( void );
+		bool	ConfirmDiscard( void );
 		DWORD	GetSizeOnFile( CString strFile, bool bModified = false );
 		DWORD	GetSizeOnDisk( CString strFile, DWORD cbFile = 0 );
 		void	GetTextEncode( BYTE* pbText, QWORD cbText );
@@ -133,4 +136,11 @@ protected:
 		CString	GetSelected( void );
 		bool	IsPasteable( void );
 		CString	CommaDigitsOf( int nValue );
+
+		bool	Print( CPrintParam& param );
+		void	PrintContent( CDC* pDC, CPrintParam& param );
+		void	PrintLine( CDC* pDC, CRect& rectDraw, CString& strLine, int cyLine, int nTab );
+		void	BreakLine( CDC* pDC, CRect& rectLine, CString& strLine, int& cx, UINT uFormat );
+		void	PrintMargin( CDC* pDC, CRect rectMargin, CString strMargin, int nPage );
+		bool	IsPageToPrint( UINT uPage, CUIntArray& uaPages );
 };

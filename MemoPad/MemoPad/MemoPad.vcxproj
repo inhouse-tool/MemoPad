@@ -82,7 +82,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../../!ClassLib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -107,7 +108,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>./;../../!ClassLib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,9 +169,11 @@
     <ClInclude Include="FontDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MarginDlg.h" />
     <ClInclude Include="MemoApp.h" />
     <ClInclude Include="MemoView.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PrintDlg.h" />
     <ClInclude Include="PropertyDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -179,6 +183,7 @@
     <ClCompile Include="FindDlg.cpp" />
     <ClCompile Include="FontDlg.cpp" />
     <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="MarginDlg.cpp" />
     <ClCompile Include="MemoApp.cpp" />
     <ClCompile Include="MemoView.cpp" />
     <ClCompile Include="pch.cpp">
@@ -186,6 +191,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Commit|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PrintDlg.cpp" />
     <ClCompile Include="PropertyDlg.cpp" />
   </ItemGroup>
   <ItemGroup>

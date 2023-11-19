@@ -97,8 +97,6 @@ CFontDlg::OnSelectName( void )
 	SeekFontByName();
 }
 
-#define	LOGICALDPI	72	// It's seems to be fixed at 72dpi ( not 96dpi ) for the compatibility with Notepad.exe.
-
 void
 CFontDlg::OnSelectSize( void )
 {
@@ -117,6 +115,8 @@ CFontDlg::OnClickWidth( void )
 ///////////////////////////////////////////////////////////////////////////////////////
 // Specific Functions
 
+#define	LOGICALDPI	72	// It's seems to be fixed at 72dpi ( not 96dpi ) for the compatibility with Notepad.exe.
+
 void
 CFontDlg::InitControls( void )
 {
@@ -128,7 +128,7 @@ CFontDlg::InitControls( void )
 	}	astCharset[] = {
 		{	_T("ANSI"),		ANSI_CHARSET		},
 		{	_T("Baltic"),		BALTIC_CHARSET		},
-		{	_T("Chiese"),		CHINESEBIG5_CHARSET	},
+		{	_T("Chinese"),		CHINESEBIG5_CHARSET	},
 		{	_T("East Europe"),	EASTEUROPE_CHARSET	},
 		{	_T("GB2312"),		GB2312_CHARSET		},
 		{	_T("Greek"),		GREEK_CHARSET		},
