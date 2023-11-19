@@ -141,6 +141,6 @@ CFindDlg::OnClickButton( UINT uID )
 
 	WPARAM	wparam = ( (WPARAM)uID - IDC_BUTTON_NEXT ) + FIND_COMMAND_NEXT;
 	CWnd*	pwnd = GetOwner();
-	if	( pwnd )
+	if	( pwnd && !m_find.strFindWhat.IsEmpty() )
 		pwnd->PostMessage( WM_FIND, wparam, (LPARAM)&m_find );
 }
