@@ -204,6 +204,43 @@ typedef	struct	pair{
 		{ "WM_CTLCOLORDLG",		0x0136 },
 		{ "WM_CTLCOLORSCROLLBAR",	0x0137 },
 		{ "WM_CTLCOLORSTATIC",		0x0138 },
+		{ "CB_GETEDITSEL",		0x0140 },	//
+		{ "CB_LIMITTEXT",		0x0141 },	//
+		{ "CB_SETEDITSEL",		0x0142 },	//
+		{ "CB_ADDSTRING",		0x0143 },	//
+		{ "CB_DELETESTRING",		0x0144 },	//
+		{ "CB_DIR",			0x0145 },	//
+		{ "CB_GETCOUNT",		0x0146 },	//
+		{ "CB_GETCURSEL",		0x0147 },	//
+		{ "CB_GETLBTEXT",		0x0148 },	//
+		{ "CB_GETLBTEXTLEN",		0x0149 },	//
+		{ "CB_INSERTSTRING",		0x014a },	//
+		{ "CB_RESETCONTENT",		0x014b },	//
+		{ "CB_FINDSTRING",		0x014c },	//
+		{ "CB_SELECTSTRING",		0x014d },	//
+		{ "CB_SETCURSEL",		0x014e },	//
+		{ "CB_SHOWDROPDOWN",		0x014f },	//
+		{ "CB_GETITEMDATA",		0x0150 },	//
+		{ "CB_SETITEMDATA",		0x0151 },	//
+		{ "CB_GETDROPPEDCONTROLRECT",	0x0152 },	//
+		{ "CB_SETITEMHEIGHT",		0x0153 },	//
+		{ "CB_GETITEMHEIGHT",		0x0154 },	//
+		{ "CB_SETEXTENDEDUI",		0x0155 },	//
+		{ "CB_GETEXTENDEDUI",		0x0156 },	//
+		{ "CB_GETDROPPEDSTATE",		0x0157 },	//
+		{ "CB_FINDSTRINGEXACT",		0x0158 },	//
+		{ "CB_SETLOCALE",		0x0159 },	//
+		{ "CB_GETLOCALE",		0x015a },	//
+		{ "CB_GETTOPINDEX",		0x015b },	//
+		{ "CB_SETTOPINDEX",		0x015c },	//
+		{ "CB_GETHORIZONTALEXTENT",	0x015d },	//
+		{ "CB_SETHORIZONTALEXTENT",	0x015e },	//
+		{ "CB_GETDROPPEDWIDTH",		0x015f },	//
+		{ "CB_SETDROPPEDWIDTH",		0x0160 },	//
+		{ "CB_INITSTORAGE",		0x0161 },	//
+		{ "CB_MULTIPLEADDSTRING",	0x0163 },	//
+		{ "CB_GETCOMBOBOXINFO",		0x0164 },	//
+		{ "CB_MSGMAX",			0x0165 },	//
 		{ "MN_GETHMENU",		0x01E1 },
 	//	{ "WM_MOUSEFIRST",		0x0200 },
 		{ "WM_MOUSEMOVE",		0x0200 },
