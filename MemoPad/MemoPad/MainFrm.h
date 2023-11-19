@@ -33,6 +33,7 @@ protected:
 		bool	m_bMenu;
 		bool	m_bSBar;
 
+	virtual	void	GetMessageString( UINT nID, CString& rMessage )	const;
 	virtual	BOOL	PreCreateWindow( CREATESTRUCT& cs );
 	virtual	BOOL	PreTranslateMessage( MSG* pMsg );
 	virtual	BOOL	OnCmdMsg( UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo );

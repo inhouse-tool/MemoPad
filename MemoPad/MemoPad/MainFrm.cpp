@@ -30,6 +30,15 @@ CMainFrame::CMainFrame( void )
 ///////////////////////////////////////////////////////////////////////////////////////
 // Overridden Functions
 
+void
+CMainFrame::GetMessageString( UINT nID, CString& rMessage ) const
+{
+	if	( nID == AFX_IDS_IDLEMESSAGE )
+		rMessage = m_strIdle;
+	else
+		CFrameWnd::GetMessageString( nID, rMessage );
+}
+
 BOOL
 CMainFrame::PreCreateWindow( CREATESTRUCT& cs )
 {
@@ -437,5 +446,5 @@ CMainFrame::PlaceWindow( void )
 	rect.right  = rect.left + cx	- ( rcFrame.right  - rcWindow.right ) * 2;
 	rect.bottom = mi.rcWork.bottom	- ( rcFrame.bottom - rcWindow.bottom );
 
-	SetWindowPos( NULL, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE );
+	SetWindowPos( NULL, rect.left, rect.top, rect.Width(), rect.Height()-1, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE );
 }
