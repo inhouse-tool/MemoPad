@@ -139,6 +139,12 @@ CFindDlg::OnClickButton( UINT uID )
 	GetDlgItem( IDC_EDIT_FIND    )->GetWindowText( m_find.strFindWhat );
 	GetDlgItem( IDC_EDIT_REPLACE )->GetWindowText( m_find.strReplaceWith );
 
+	if	( !m_find.bMacthCase &&
+		  !m_find.strFindWhat.CompareNoCase( m_find.strReplaceWith ) ){
+		((CButton*)GetDlgItem( IDC_CHECK_CASE ))->SetCheck( BST_CHECKED );
+		m_find.bMacthCase = true;
+	}
+
 	WPARAM	wparam = ( (WPARAM)uID - IDC_BUTTON_NEXT ) + FIND_COMMAND_NEXT;
 	CWnd*	pwnd = GetOwner();
 	if	( pwnd && !m_find.strFindWhat.IsEmpty() )
