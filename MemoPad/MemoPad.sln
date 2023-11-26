@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MemoPad", "MemoPad\MemoPad.vcxproj", "{176D9A4D-12D7-4791-95FE-15C4A460583D}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{C08A0C1F-C925-4C67-9A26-3B20C1EF49E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Commit|x64 = Commit|x64
@@ -18,6 +20,10 @@ Global
 		{176D9A4D-12D7-4791-95FE-15C4A460583D}.Debug|x64.Build.0 = Debug|x64
 		{176D9A4D-12D7-4791-95FE-15C4A460583D}.Release|x64.ActiveCfg = Release|x64
 		{176D9A4D-12D7-4791-95FE-15C4A460583D}.Release|x64.Build.0 = Release|x64
+		{C08A0C1F-C925-4C67-9A26-3B20C1EF49E7}.Commit|x64.ActiveCfg = Release
+		{C08A0C1F-C925-4C67-9A26-3B20C1EF49E7}.Commit|x64.Build.0 = Release
+		{C08A0C1F-C925-4C67-9A26-3B20C1EF49E7}.Debug|x64.ActiveCfg = Debug
+		{C08A0C1F-C925-4C67-9A26-3B20C1EF49E7}.Release|x64.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
