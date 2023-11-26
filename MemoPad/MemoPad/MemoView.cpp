@@ -16,8 +16,10 @@
 #endif//UNICODE
 
 #define	TID_REPLACEALL	1
-#define	TID_SET_FONT	2
-#define	TID_INDICATE	3
+#define	TID_UNDOALL	2
+#define	TID_REDOALL	3
+#define	TID_SET_FONT	4
+#define	TID_INDICATE	5
 
 TCHAR*
 CMemoView::m_apchEncode[]
@@ -34,6 +36,7 @@ CMemoView::CMemoView( void )
 	m_bDiscardModified = pApp->GetProfileInt(    _T("Settings"), _T("DiscardModified"), 0 );
 	m_crText           = pApp->GetProfileInt(    _T("Settings"), _T("ColorText"),      -1 );
 	m_crBack           = pApp->GetProfileInt(    _T("Settings"), _T("ColorBack"),      -1 );
+	m_nRepeatTime      = pApp->GetProfileInt(    _T("Settings"), _T("RepeatTime"),     32 );
 
 	m_brBack = CreateSolidBrush( m_crBack );
 
@@ -49,11 +52,10 @@ CMemoView::CMemoView( void )
 
 	m_bFindUp     = true;
 	m_bFindCase   = false;
-	m_bReplace    = false;
 	m_bReplaceAll = false;
 	m_nFound      = 0;
 	m_iUndo       = 0;
-	m_bUndoing    = false;
+	m_bNoDiff    = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -109,8 +111,12 @@ CMemoView::PreTranslateMessage( MSG* pMsg )
 			m_bInsert = !m_bInsert;
 			if	( m_bInsert )
 				AfxGetMainWnd()->SetFocus();
-			else
+			else{
+				int	xStart, xEnd;
+				GetSel( xStart, xEnd );
+				SetSel( xStart, xEnd, FALSE );
 				SetTimer( TID_INDICATE, 0, NULL );
+			}
 		}
 	}
 	else if	( pMsg->message == WM_KEYUP ||
@@ -280,6 +286,15 @@ CMemoView::OnTimer( UINT_PTR nIDEvent )
 		KillTimer( nIDEvent );
 		OnFind( FIND_COMMAND_ALL, 0 );
 	}
+	else if	( nIDEvent == TID_UNDOALL ){
+		KillTimer( nIDEvent );
+		Undo();
+	}
+	else if	( nIDEvent == TID_REDOALL ){
+		KillTimer( nIDEvent );
+		Redo();
+	}
+
 	else if	( nIDEvent == TID_SET_FONT ){
 		KillTimer( nIDEvent );
 
@@ -755,19 +770,40 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 	// Take parameters given from the dialog.
 
 	FIND*	pFind = (FIND*)lParam;
+	bool	bReplace = false;
 	if	( pFind ){
 		m_bFindCase   = pFind->bMacthCase;
 		m_bFindUp     = pFind->bUpward;
-		m_bReplace    = wParam == FIND_COMMAND_REPLACE;
+		bReplace      = wParam == FIND_COMMAND_REPLACE;
 		m_bReplaceAll = wParam == FIND_COMMAND_ALL;
 		m_strFind     = pFind->strFindWhat;
 		m_strReplace  = pFind->strReplaceWith;
 	}
 
+	// Do Replace now for the last found string.
+
+	int	xStart, xEnd;
+	if	( bReplace ){
+		GetSel( xStart, xEnd );
+		CString	strLast = m_strLines.Mid( xStart, ( xEnd - xStart ) );
+		if	( strLast == m_strFind ){
+			m_bNoDiff = true;
+			ReplaceSel( m_strReplace, TRUE );
+			SetSel( xStart, xStart+m_strReplace.GetLength(), FALSE );
+			m_bNoDiff = false;
+
+			CUndo	undo;
+			undo.m_iChar = xStart;
+			undo.m_strText.Format( _T("R%s\b%s"), strLast.GetBuffer(), m_strReplace.GetBuffer() );
+			m_aUndo.Add( undo );
+			m_iUndo = m_aUndo.GetCount();
+		}
+	}
+
 	// Make lower case when 'match case' is not specified.
 
 	CString	strLines = m_strLines;
-	CString	strFind = m_strFind;
+	CString	strFind  = m_strFind;
 	if	( !m_bFindCase ){
 		strLines.MakeLower();
 		strFind .MakeLower();
@@ -775,7 +811,6 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 
 	// Get current position to start search.
 
-	int	xStart, xEnd;
 	GetSel( xStart, xEnd );
 	int	x = m_bFindUp? xStart-1: xEnd;
 
@@ -827,12 +862,22 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 
 		// Replace or select the text hit.
 
-		if	( m_bReplace || m_bReplaceAll ){
+		CString	strLast = m_strLines.Mid( x, m_strFind.GetLength() );
+		if	( m_bReplaceAll ){
+			m_bNoDiff = true;
 			SetSel( x, x+m_strFind.GetLength(), FALSE );
 			ReplaceSel( m_strReplace, TRUE );
 			SetSel( x, x+m_strReplace.GetLength(), FALSE );
-			if	( m_bReplaceAll )
-				SetTimer( TID_REPLACEALL, 64, NULL );
+			m_bNoDiff = false;
+
+			CUndo	undo;
+			undo.m_iChar = x;
+			undo.m_strText.Format( _T("%c%s\b%s"),
+				( m_nFound == 1 )? 'R': 'r', strLast.GetBuffer(), m_strReplace.GetBuffer() );
+			m_aUndo.Add( undo );
+			m_iUndo = m_aUndo.GetCount();
+
+			SetTimer( TID_REPLACEALL, m_nRepeatTime, NULL );
 		}
 		else
 			SetSel( x, x+cch, FALSE );
@@ -1453,7 +1498,7 @@ CMemoView::RenewTitle( void )
 void
 CMemoView::TakeDiff( void )
 {
-	if	( m_bUndoing )
+	if	( m_bNoDiff )
 		return;
 
 	int	nchNew = m_strLines    .GetLength();
@@ -1517,7 +1562,7 @@ CMemoView::TakeDiff( void )
 
 					if	( undo.m_strText[0] == 'D' ){
 						undo.m_strText.Delete( 0, 1 );
-						undo.m_strText.Insert( 0, _T("R") );
+						undo.m_strText.Insert( 0, ( m_bReplaceAll && m_nFound > 1 ) ? _T("r"): _T("R") );
 						undo.m_strText += _T("\b");
 						undo.m_strText += strDiff;
 						break;
@@ -1576,7 +1621,7 @@ CMemoView::Undo( void )
 
 	// Set the falg to avoid retaking the difference.
 
-	m_bUndoing = true;
+	m_bNoDiff = true;
 
 	{
 		// Take the last action.
@@ -1606,7 +1651,8 @@ CMemoView::Undo( void )
 
 		// The action was 'Replace', exchange it.
 
-		else if	( chMode == 'R' ){
+		else if	( chMode == 'R' ||
+			  chMode == 'r'    ){
 			int	x = strText.Find( '\b' );
 			CString	strNew = strText.Mid( x+1 );
 			strText = strText.Left( x );
@@ -1614,12 +1660,15 @@ CMemoView::Undo( void )
 			SetSel( iChar, iEnd, FALSE );
 			ReplaceSel( strText, FALSE );
 			SetSel( iChar, iChar+strText.GetLength(), FALSE );
+
+			if	( chMode == 'r' )
+				SetTimer( TID_UNDOALL, m_nRepeatTime, NULL );
 		}
 	}
 
 	// Clear the falg to avoid retaking the difference.
 
-	m_bUndoing = false;
+	m_bNoDiff = false;
 
 	// Just in case file image is left from / returned to the original, renew '*' of title.
 
@@ -1634,7 +1683,7 @@ CMemoView::Redo( void )
 
 	// Set the falg to avoid retaking the difference.
 
-	m_bUndoing = true;
+	m_bNoDiff = true;
 
 	{
 		// Take the last Undo.
@@ -1664,7 +1713,8 @@ CMemoView::Redo( void )
 
 		// The action was 'Replace', do it again.
 
-		else if	( chMode == 'R' ){
+		else if	( chMode == 'R' ||
+			  chMode == 'r'    ){
 			int	x = strText.Find( '\b' );
 			CString	strNew = strText.Mid( x+1 );
 			strText = strText.Left( x );
@@ -1672,12 +1722,16 @@ CMemoView::Redo( void )
 			SetSel( iChar, iEnd, FALSE );
 			ReplaceSel( strNew, FALSE );
 			SetSel( iChar, iChar+strNew.GetLength(), FALSE );
+
+			if	( i < m_aUndo.GetUpperBound() &&
+				  m_aUndo[i+1].m_strText[0] == 'r' )
+				SetTimer( TID_REDOALL, m_nRepeatTime, NULL );
 		}
 	}
 
 	// Clear the falg to avoid retaking the difference.
 
-	m_bUndoing = false;
+	m_bNoDiff = false;
 
 	// Just in case file image is left from / returned to the original, renew '*' of title.
 
