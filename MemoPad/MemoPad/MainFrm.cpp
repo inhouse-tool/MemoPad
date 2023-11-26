@@ -154,6 +154,9 @@ CMainFrame::OnCreate( LPCREATESTRUCT lpCreateStruct )
 
 		pSubMenu = GetMenu()->GetSubMenu( 2 );
 		pSysMenu->InsertMenu( 8,  MF_BYPOSITION | MF_POPUP, (UINT_PTR)pSubMenu->m_hMenu, L"&View" );
+
+		pSubMenu = GetMenu()->GetSubMenu( 3 );
+		pSysMenu->InsertMenu( 9,  MF_BYPOSITION | MF_POPUP, (UINT_PTR)pSubMenu->m_hMenu, L"&Help" );
 	}
 
 	SetTimer( TID_INITIAL, 0, NULL );
@@ -242,6 +245,10 @@ CMainFrame::OnSysCommand( UINT nID, LPARAM lParam )
 		  nID == ID_WINDOW_TILE_HORZ   )
 		PostMessage( WM_COMMAND, nID, 0 );
 
+	else if	( nID >= ID_APP_ABOUT &&
+		  nID <= ID_DEFAULT_HELP )
+		PostMessage( WM_COMMAND, nID, 0 );
+
 	else if	( nID >= ID_FILE_NEW &&
 		  nID <= ID_RECORD_PREV )
 		m_wndView.PostMessage( WM_COMMAND, nID, 0 );
@@ -268,6 +275,8 @@ CMainFrame::OnViewWordWrap( void )
 	AfxGetApp()->WriteProfileInt( _T("Settings"), _T("WordWrap"), m_bWrap? 1: 0 );
 
 	CreateClient();
+
+	AfxGetMainWnd()->SetFocus();
 }
 
 void
