@@ -67,7 +67,8 @@ UTF-8 と判定し,
 
 ## 運用
 
- [Releases](https://github.com/inhouse-tool/MemoPad/releases) にインストーラーを用意しました.
+ [Releases](https://github.com/inhouse-tool/MemoPad/releases)
+にインストーラーを用意しました.
 まずはこれでインストールしましょう.
 その後, 必要に応じて [DLL の追加](MemoPad/Release/README.md) を行うことになります.
 ( これまでの PC の使い方によっては, DLL の追加 は不要な場合もあります. )
