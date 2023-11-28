@@ -2,6 +2,14 @@
 
 ただの「メモ帳」です.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheDark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheLight.png">
+  <img alt="Snapshot" src="Examples/MemoPadInTheLight.png">
+</picture>
+
+<p>
+
 [MFC](https://en.wikipedia.org/wiki/Microsoft_Foundation_Class_Library)
 業界界隈では「初心者の練習問題」扱いされるほど, 簡単に作れるものです.
 なぜそんなものをいまさら持ち出したのかというと,
@@ -69,7 +77,7 @@ UTF-8 と判定し,
 
  [Releases](https://github.com/inhouse-tool/MemoPad/releases)
 にインストーラー `MemoPad.msi` を用意しました.
-まずはこれでインストールしましょう.
+まずはこれで[インストール](https://github.com/inhouse-tool/MemoPad/tree/master/Installation.md)しましょう.
 その後, 必要に応じて [DLL の追加](MemoPad/Release/README.md) を行うことになります.
 ( これまでの PC の使い方によっては, DLL の追加 は不要な場合もあります. )
 
@@ -132,7 +140,7 @@ SOFTWARE.
 ## 特徴
 
 いまさら「メモ帳」についてご説明申し上げるのもナンなので,
-以下 Windows10 の元祖メモ帳 ( 以下「元祖10」) と Windows11 のメモ帳 ( 以下「元祖11」) との違いを列挙しておきます.
+以下 Windows10 の元祖メモ帳 ( 以下「元祖10」) と Windows11 の本家メモ帳 ( 以下「元祖11」) との違いを列挙しておきます.
 
 ### 全体
 
