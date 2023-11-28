@@ -5,7 +5,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheDark.png">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheLight.png">
-  <img alt="Snapshot" src="Examples/MemoPadInTheLight.png">
+  <img alt="Snapshot" src="https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheLight.png">
 </picture>
 
 <p>
