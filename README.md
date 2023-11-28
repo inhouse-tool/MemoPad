@@ -3,9 +3,9 @@
 ‚½‚¾‚Ìuƒƒ‚’ v‚Å‚·.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="tree/master/Examples/MemoPadInTheDark.png">
-  <source media="(prefers-color-scheme: light)" srcset="tree/master/Examples/MemoPadInTheLight.png">
-  <img alt="Snapshot" src="tree/master/Examples/MemoPadInTheLight.png">
+  <source media="(prefers-color-scheme: dark)" srcset="Examples/MemoPadInTheDark.png">
+  <source media="(prefers-color-scheme: light)" srcset="Examples/MemoPadInTheLight.png">
+  <img alt="Snapshot" src="Examples/MemoPadInTheLight.png">
 </picture>
 
 <p>
