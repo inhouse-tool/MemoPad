@@ -2,7 +2,11 @@
 
 ‚½‚¾‚Ìuƒƒ‚’ v‚Å‚·.
 
-![Snapshot](https://github.com/inhouse-tool/MemoPad/tree/master/Examples/MemoPadInTheDark.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="tree/master/Examples/MemoPadInTheDark.png">
+  <source media="(prefers-color-scheme: light)" srcset="tree/master/Examples/MemoPadInTheLight.png">
+  <img alt="Snapshot" src="tree/master/Examples/MemoPadInTheLight.png">
+</picture>
 
 <p>
 
