@@ -1,4 +1,8 @@
-## インストール手順 ( Windows11 の場合 )
+# インストール手順
+
+## Microsoft Edge の場合
+
+### Windows11 ( 2023年11月現在 )
 
 `MemoPad.msi` をクリックすると `開く ( Open )` か `名前を付けて保存 ( Save as )` かの二択を迫られます.
 
@@ -23,8 +27,7 @@
 了承するとインストールが済んで `Close` ボタンを押すばかりになります.
 このボタンをクリックすればインストールは完了です.
 
-
-## インストール手順 ( Windows10 の場合 )
+### Windows10 ( 2023年11月現在 )
 
 `MemoPad.msi` をクリックするとブロックされることがあります.
 
@@ -49,5 +52,3 @@
 あれ? Windows10 の場合って,
 [.exe 単品のダウンロード](https://github.com/inhouse-tool/MemoPad/tree/master/MemoPad/Release)
 を試みたときと大して手間が変わってないような…….
-
-※上記いずれも Microsoft Edge を使用した際の流れです. ( 2023年11月現在 )
