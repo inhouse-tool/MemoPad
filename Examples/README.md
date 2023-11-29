@@ -40,7 +40,7 @@ Unicode ‘Î‰ž‚à‚»‚ñ‚È‚à‚ñ‚©‚Èv‚ÆŽv‚¢‚Â‚Â, uWindows11 ‚Ì Notepad.exe ‚Í‚Ç‚¤‚È‚ñ‚
  Notepad.exe ‚Å‚Í•\Ž¦‚³‚ê‚È‚¢Žšv‚ª‚ ‚é‚Ì‚Í‹Á‚«‚Å‚µ‚½.
 u‘å‚µ‚½ˆá‚¢‚ª‚È‚¢‚È‚ç, ‚±‚ê‚Å‚¢‚¢‚âv‚ÆŒ‹˜_•t‚¯‚½ŽŸ‘æ‚Å‚·.
 
-‚¨‚â? ‚±‚Ìƒtƒ@ƒCƒ‹, uMicrosoft Print to PDFv‚Åˆóü‚·‚é‚Æ,
+‚¨‚â? ‚±‚Ìƒtƒ@ƒCƒ‹, `Microsoft Print to PDF` ‚Åˆóü‚·‚é‚Æ,
 .pdf ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ª 0 ‚É‚È‚è‚Ü‚·‚Ë.
 
 ’²‚×‚Ä‚Ý‚é‚Æ, ‚Ç‚¤‚â‚ç UNICODE ‚Ì 1f0e0 ` 1f0f5 ‚Ì•¶Žš‚ª’n—‹‚Ì‚æ‚¤‚Å‚·.
@@ -48,6 +48,8 @@ Unicode ‘Î‰ž‚à‚»‚ñ‚È‚à‚ñ‚©‚Èv‚ÆŽv‚¢‚Â‚Â, uWindows11 ‚Ì Notepad.exe ‚Í‚Ç‚¤‚È‚ñ‚
 ƒJ[ƒh ( ƒ^ƒƒbƒgƒJ[ƒh? ) ‚ð•\‚·•¶ŽšƒR[ƒh‚Ì—Ìˆæ‚Å‚·‚Ë.
 ‚µ‚©‚µ, NG ‚È•¶Žš‚¾‚¯‚ªo‚È‚¢‚Æ‚©‰»‚¯‚é‚Ì‚È‚ç‚Æ‚à‚©‚­,
 .pdf ƒtƒ@ƒCƒ‹‘S‘Ì‚ª‚â‚ç‚ê‚é‚Æ‚Ícc.
+( `Microsoft XPS Document Writer` ‚Å‚Í‚»‚ñ‚È‚±‚Æ‚É‚Í‚È‚ç‚È‚¢‚Ì‚Å,
+`Microsoft Print to PDF` ŒÅ—L‚ÌŒ»Û‚Ì‚æ‚¤‚Å‚·. )
 
 ### ‚Æ‚±‚ë‚Åcc
 
@@ -56,6 +58,21 @@ Notepad ‚Ìƒ^ƒu‚É‚Í•\Ž¦‚µ‚«‚ê‚Ü‚¹‚ñ‚Ë.
 uƒ^ƒu‚¶‚á‚È‚­‚ÄV‚µ‚¢ƒEƒBƒ“ƒhƒE‚Åv‚ÆÝ’è‚µ‚Ä‚à,
 ƒtƒ@ƒCƒ‹–¼‚ð•\Ž¦‚·‚éƒXƒy[ƒX‚ªƒ^ƒu‚Ì‚Ü‚Ü‚Á‚Ä‚Ì‚Í‚Ç‚¤‚È‚ñ‚Å‚µ‚å‚¤?
 
-<div style="text-align: right;">
+## •\Ž¦—á
+
+### MemoPadInTheDark.png
+
+ƒ_[ƒNƒ‚[ƒh‚É‚¨‚¯‚é•\Ž¦—á. ‚È‚ñ‚©‘S‘Ì“I‚ÉˆÃ‚¢‚Å‚·.
+
+### MemoPadInTheLight.png
+
+ƒ‰ƒCƒgƒ‚[ƒh‚É‚¨‚¯‚é•\Ž¦—á. ‚È‚ñ‚©‘S‘Ì‚ª”’‚Á‚Û‚¢‚Å‚·.
+
+### ‚¢‚¸‚ê‚É‚¹‚æcc
+
+FŽg‚¢‚ª”÷–­‚Å‚·‚ª, ƒ_[ƒNƒ‚[ƒh‘Î‰žƒAƒvƒŠ‚ð‚¢‚­‚Â‚©’²‚×‚½‚Æ‚±‚ë,
+‚±‚ñ‚ÈŠ´‚¶‚Ì•\Œ»‚ªŽå—¬‚È‚æ‚¤‚Å‚·‚Ì‚æ.
+
+<p style="text-align: right;">
 In-house Tool / ‰Æ’† “O
-</div>
+</p>
