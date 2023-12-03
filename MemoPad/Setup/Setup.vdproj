@@ -128,6 +128,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -529,15 +537,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:MemoPad"
-        "ProductCode" = "8:{D9CCD07B-A6A6-4041-994C-9F4E54D2F9B9}"
-        "PackageCode" = "8:{EAABE1D8-34F0-494F-AFBC-0910A525AF06}"
-        "UpgradeCode" = "8:{A7E26952-B686-42A8-97C3-ECA36CA6273F}"
+        "ProductCode" = "8:{A0D4EC6A-B054-48CE-9506-694F32FF07CE}"
+        "PackageCode" = "8:{2BAE5AA6-299D-42D6-AC82-CDE973B9BEDD}"
+        "UpgradeCode" = "8:{9598BD46-9376-4F57-B5AF-D364C5975146}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.2"
+        "ProductVersion" = "8:1.0.3"
         "Manufacturer" = "8:In-house Tool"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/inhouse-tool/MemoPad/"
@@ -562,34 +570,6 @@
             {
                 "Keys"
                 {
-                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_8B5D6BDE349F4C9A9DFBD618B0958760"
-                    {
-                    "Name" = "8:Software"
-                    "Condition" = "8:"
-                    "AlwaysCreate" = "11:FALSE"
-                    "DeleteAtUninstall" = "11:FALSE"
-                    "Transitive" = "11:FALSE"
-                        "Keys"
-                        {
-                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_9490781255394C0489EAF0735541F6EB"
-                            {
-                            "Name" = "8:[Manufacturer]"
-                            "Condition" = "8:"
-                            "AlwaysCreate" = "11:FALSE"
-                            "DeleteAtUninstall" = "11:FALSE"
-                            "Transitive" = "11:FALSE"
-                                "Keys"
-                                {
-                                }
-                                "Values"
-                                {
-                                }
-                            }
-                        }
-                        "Values"
-                        {
-                        }
-                    }
                 }
             }
             "HKCU"
@@ -627,226 +607,42 @@
                                             {
                                             "Name" = "8:Settings"
                                             "Condition" = "8:"
-                                            "AlwaysCreate" = "11:FALSE"
-                                            "DeleteAtUninstall" = "11:FALSE"
+                                            "AlwaysCreate" = "11:TRUE"
+                                            "DeleteAtUninstall" = "11:TRUE"
                                             "Transitive" = "11:FALSE"
                                                 "Keys"
                                                 {
                                                 }
                                                 "Values"
                                                 {
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_17AD7661F7404BFD996E0A304BDD5E89"
-                                                    {
-                                                    "Name" = "8:ColorBack"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:-1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_333FEB7309DD45958A0D86E90B00CC52"
-                                                    {
-                                                    "Name" = "8:DiscardModified"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:0"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_36C581662AAB4BA0AAC7ADBE29780025"
-                                                    {
-                                                    "Name" = "8:WordWrap"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_55978F0AE3B342A4A1F8436F55DDCCD3"
-                                                    {
-                                                    "Name" = "8:StatusBar"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_7BA4849677BA4E27BDD7DBAB1D625122"
-                                                    {
-                                                    "Name" = "8:ColorText"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:-1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_C081810AC4CD4D63B3EDD49BD51FA62E"
-                                                    {
-                                                    "Name" = "8:RepeatTime"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:32"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_CD74177634B44AC8B089C38EB99AF7B2"
-                                                    {
-                                                    "Name" = "8:MenuBar"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_E5682FCED8834B19AC654550653DFF95"
-                                                    {
-                                                    "Name" = "8:EnableDark"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:1"
-                                                    }
                                                 }
                                             }
                                             "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_1D5570C694474E5889B8929FA3FE64E5"
                                             {
                                             "Name" = "8:Font"
                                             "Condition" = "8:"
-                                            "AlwaysCreate" = "11:FALSE"
-                                            "DeleteAtUninstall" = "11:FALSE"
+                                            "AlwaysCreate" = "11:TRUE"
+                                            "DeleteAtUninstall" = "11:TRUE"
                                             "Transitive" = "11:FALSE"
                                                 "Keys"
                                                 {
                                                 }
                                                 "Values"
                                                 {
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_0E292668AB454F6589CA9D733596362A"
-                                                    {
-                                                    "Name" = "8:CharSet"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:0"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_67AB15B315B54F42B29846B2895368F5"
-                                                    {
-                                                    "Name" = "8:Point"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:11"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_746C81C0CD2249E8A3B721AFFDF36C90"
-                                                    {
-                                                    "Name" = "8:Pitch"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:1"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_DDD07DB1D7564AE68CC06A7403CBAD07"
-                                                    {
-                                                    "Name" = "8:Name"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:1"
-                                                    "Value" = "8:BIZ UDGothic"
-                                                    }
                                                 }
                                             }
                                             "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_BDB0503AA2DB49BEA9CE76D4BAD65EDA"
                                             {
                                             "Name" = "8:Print"
                                             "Condition" = "8:"
-                                            "AlwaysCreate" = "11:FALSE"
-                                            "DeleteAtUninstall" = "11:FALSE"
+                                            "AlwaysCreate" = "11:TRUE"
+                                            "DeleteAtUninstall" = "11:TRUE"
                                             "Transitive" = "11:FALSE"
                                                 "Keys"
                                                 {
                                                 }
                                                 "Values"
                                                 {
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_1611F860170A41A7A2C4EB1344296D38"
-                                                    {
-                                                    "Name" = "8:MarginR"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:20"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_3CD1729EA1814139B7602737EA61B4C2"
-                                                    {
-                                                    "Name" = "8:Size"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:9"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_3FD4884DF2834F0B9E6EDE9F9957A509"
-                                                    {
-                                                    "Name" = "8:MarginT"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:25"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_69B766B723964A4DA2C8961201564F40"
-                                                    {
-                                                    "Name" = "8:MarginB"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:25"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_7356F89872EC441BA67C8C3CF8895224"
-                                                    {
-                                                    "Name" = "8:Footer"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:1"
-                                                    "Value" = "8:- &p -"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_7CD0050541D444028A04E4243EAD1FF4"
-                                                    {
-                                                    "Name" = "8:Inch"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:0"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_802ED9C3036142839561A735333940E7"
-                                                    {
-                                                    "Name" = "8:Header"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:1"
-                                                    "Value" = "8:&f"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_81C8C7B37E6E4FB4BD5852B9CE8B62B7"
-                                                    {
-                                                    "Name" = "8:Printer"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:1"
-                                                    "Value" = "8:Microsoft Print to PDF"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_ACF9D38051E3405698F2C8EFF7D13E5D"
-                                                    {
-                                                    "Name" = "8:MarginL"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:20"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_AEBB3AC00D184ED6B565CFE4AA911201"
-                                                    {
-                                                    "Name" = "8:Landscape"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:0"
-                                                    }
-                                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_EADE938CA7BA4F3F8B41AB7047A4E852"
-                                                    {
-                                                    "Name" = "8:Tab"
-                                                    "Condition" = "8:"
-                                                    "Transitive" = "11:FALSE"
-                                                    "ValueTypes" = "3:3"
-                                                    "Value" = "3:8"
-                                                    }
                                                 }
                                             }
                                         }
