@@ -22,9 +22,19 @@ CMainFrame::CMainFrame( void )
 	m_hAccel = NULL;
 
 	CWinApp*	pApp = AfxGetApp();
-	m_bWrap = pApp->GetProfileInt( _T("Settings"), _T("WordWrap"),  1 );
-	m_bMenu = pApp->GetProfileInt( _T("Settings"), _T("MenuBar"),   1 );
-	m_bSBar = pApp->GetProfileInt( _T("Settings"), _T("StatusBar"), 1 );
+	m_bWrap = m_bWrapOrg = pApp->GetProfileInt( _T("Settings"), _T("WordWrap"),  1 );
+	m_bMenu = m_bMenuOrg = pApp->GetProfileInt( _T("Settings"), _T("MenuBar"),   1 );
+	m_bSBar = m_bSBarOrg = pApp->GetProfileInt( _T("Settings"), _T("StatusBar"), 1 );
+}
+
+CMainFrame::~CMainFrame( void )
+{
+	if	( m_bWrap != m_bWrapOrg )
+		AfxGetApp()->WriteProfileInt( _T("Settings"), _T("WordWrap"),  m_bWrap? 1: 0 );
+	if	( m_bMenu != m_bMenuOrg )
+		AfxGetApp()->WriteProfileInt( _T("Settings"), _T("MenuBar"),   m_bMenu? 1: 0 );
+	if	( m_bSBar != m_bSBarOrg )
+		AfxGetApp()->WriteProfileInt( _T("Settings"), _T("StatusBar"), m_bSBar? 1: 0 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -272,7 +282,6 @@ void
 CMainFrame::OnViewWordWrap( void )
 {
 	m_bWrap = !m_bWrap;
-	AfxGetApp()->WriteProfileInt( _T("Settings"), _T("WordWrap"), m_bWrap? 1: 0 );
 
 	CreateClient();
 
@@ -283,7 +292,6 @@ void
 CMainFrame::OnViewMenuBar( void )
 {
 	m_bMenu = !m_bMenu;
-	AfxGetApp()->WriteProfileInt( _T("Settings"), _T("MenuBar"), m_bMenu? 1: 0 );
 
 	SetMenuBarState( m_bMenu? AFX_MBS_VISIBLE: AFX_MBS_HIDDEN );
 }
@@ -292,7 +300,6 @@ void
 CMainFrame::OnViewStatusBar( void )
 {
 	m_bSBar = !m_bSBar;
-	AfxGetApp()->WriteProfileInt( _T("Settings"), _T("StatusBar"), m_bSBar? 1: 0 );
 
 	ShowControlBar( &m_wndStatusBar, m_bSBar, FALSE );
 }
@@ -443,7 +450,7 @@ CMainFrame::PlaceWindow( void )
 	MONITORINFO	mi = { sizeof( mi ) };
 	GetMonitorInfo( hMonitor, &mi );
 
-	RECT	rcFrame, rcWindow;
+	RECT	rcFrame = {}, rcWindow = {};
 	DwmGetWindowAttribute( m_hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcFrame, sizeof( rcFrame ) );
 	GetWindowRect( &rcWindow );
 

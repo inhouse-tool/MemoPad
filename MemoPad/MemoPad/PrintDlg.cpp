@@ -36,7 +36,7 @@ CPrintDlg::OnInitDialog( void )
 
 	CWinApp*	pApp = AfxGetApp();
 
-	m_param.m_strPrinter = pApp->GetProfileString( _T("Print"), _T("Printer"),   _T("") );
+	m_param.m_strPrinter = pApp->GetProfileString( _T("Print"), _T("Printer"),   _T("Microsoft Print to PDF") );
 	m_param.m_bInch      = pApp->GetProfileInt(    _T("Print"), _T("Inch"),      0 );
 	m_param.m_iPaperSize = pApp->GetProfileInt(    _T("Print"), _T("Size"),      DMPAPER_A4 );
 	m_param.m_bLandscape = pApp->GetProfileInt(    _T("Print"), _T("Landscape"), 0 );

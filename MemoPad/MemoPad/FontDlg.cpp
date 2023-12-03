@@ -21,6 +21,10 @@ CFontDlg::CFontDlg( void )
 	m_bAlt = false;
 	m_uClicked = 0;
 
+	m_nCharSet = 0;
+	m_bPitch   = 0;
+	m_nPoint   = 0;
+
 	memset( &m_lf, 0, sizeof( m_lf ) );
 }
 
@@ -172,17 +176,17 @@ CFontDlg::LoadSettings( void )
 {
 	// Load 'CharSet' and 'Pitch' to filter 'Font name's.
 
-	int	nCharSet = AfxGetApp()->GetProfileInt(     _T("Font"), _T("CharSet"), ANSI_CHARSET );
-	BYTE	bPitch   = AfxGetApp()->GetProfileInt(     _T("Font"), _T("Pitch"), FIXED_PITCH | VARIABLE_PITCH );
-	((CButton*)GetDlgItem( IDC_CHECK_PROPORTIONAL ))->SetCheck( ( bPitch & VARIABLE_PITCH )? BST_CHECKED: BST_UNCHECKED );
-	((CButton*)GetDlgItem( IDC_CHECK_FIXED )       )->SetCheck( ( bPitch & FIXED_PITCH    )? BST_CHECKED: BST_UNCHECKED );
+	m_nCharSet = AfxGetApp()->GetProfileInt(     _T("Font"), _T("CharSet"), ANSI_CHARSET );
+	m_bPitch   = AfxGetApp()->GetProfileInt(     _T("Font"), _T("Pitch"), FIXED_PITCH );
+	((CButton*)GetDlgItem( IDC_CHECK_PROPORTIONAL ))->SetCheck( ( m_bPitch & VARIABLE_PITCH )? BST_CHECKED: BST_UNCHECKED );
+	((CButton*)GetDlgItem( IDC_CHECK_FIXED )       )->SetCheck( ( m_bPitch & FIXED_PITCH    )? BST_CHECKED: BST_UNCHECKED );
 
 	int	n;
 	CComboBox*	pCombo;
 	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_CHARSET );
 	n = pCombo->GetCount();
 	for	( int i = 0; i < n; i++ )
-		if	( pCombo->GetItemData( i ) == nCharSet ){
+		if	( pCombo->GetItemData( i ) == m_nCharSet ){
 			pCombo->SetCurSel( i );
 			break;
 		}
@@ -191,7 +195,7 @@ CFontDlg::LoadSettings( void )
 
 	// Load 'Point' and 'Font name' to select one font.
 
-	int	nPoint   = AfxGetApp()->GetProfileInt(     _T("Font"), _T("Point"),   11 );
+	m_nPoint   = AfxGetApp()->GetProfileInt(     _T("Font"), _T("Point"),   11 );
 
 	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_SIZE );
 	n = pCombo->GetCount();
@@ -199,14 +203,14 @@ CFontDlg::LoadSettings( void )
 		CString	str;
 		pCombo->GetLBText( i, str );
 		int	nPt = atoi( str );
-		if	( nPt == nPoint ){
+		if	( nPt == m_nPoint ){
 			pCombo->SetCurSel( i );
 			m_lf.lfHeight = (int)pCombo->GetItemData( i );
 			break;
 		}
 	}
 
-	m_strFaceName    = AfxGetApp()->GetProfileString(  _T("Font"), _T("Name"),    _T("Courier New") );
+	m_strFaceName    = AfxGetApp()->GetProfileString(  _T("Font"), _T("Name"),    _T("Consolas") );
 	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_NAME );
 	pCombo->SelectString( 0, m_strFaceName );
 
@@ -233,10 +237,14 @@ CFontDlg::SaveSettings( void )
 	pCombo->GetLBText( pCombo->GetCurSel(), str );
 	int	nPoint = atoi( str );
 
-	AfxGetApp()->WriteProfileInt(    _T("Font"), _T("CharSet"), nCharSet );
-	AfxGetApp()->WriteProfileInt(    _T("Font"), _T("Pitch"),   bPitch );
-	AfxGetApp()->WriteProfileInt(    _T("Font"), _T("Point"),   nPoint );
-	AfxGetApp()->WriteProfileString( _T("Font"), _T("Name"), m_lf.lfFaceName );
+	if	( m_nCharSet != nCharSet )
+		AfxGetApp()->WriteProfileInt(    _T("Font"), _T("CharSet"), nCharSet );
+	if	( m_bPitch != bPitch )
+		AfxGetApp()->WriteProfileInt(    _T("Font"), _T("Pitch"),   bPitch );
+	if	( m_nPoint != nPoint )
+		AfxGetApp()->WriteProfileInt(    _T("Font"), _T("Point"),   nPoint );
+	if	( m_strFaceName != m_lf.lfFaceName )
+		AfxGetApp()->WriteProfileString( _T("Font"), _T("Name"), m_lf.lfFaceName );
 }
 
 void

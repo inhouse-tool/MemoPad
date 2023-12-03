@@ -29,9 +29,14 @@ protected:
 	    CMemoView	m_wndView;
 	   CStatusBar	m_wndStatusBar;
 	   CString	m_strIdle;
-		bool	m_bWrap;
-		bool	m_bMenu;
-		bool	m_bSBar;
+		bool	m_bWrap,
+			m_bWrapOrg;
+		bool	m_bMenu,
+			m_bMenuOrg;
+		bool	m_bSBar,
+			m_bSBarOrg;
+
+	~CMainFrame( void );
 
 	virtual	void	GetMessageString( UINT nID, CString& rMessage )	const;
 	virtual	BOOL	PreCreateWindow( CREATESTRUCT& cs );

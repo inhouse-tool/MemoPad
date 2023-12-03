@@ -16,6 +16,9 @@ protected:
 		bool	m_bAlt;
 		UINT	m_uClicked;
 
+		int	m_nCharSet;
+		BYTE	m_bPitch;
+		int	m_nPoint;
 		CString	m_strFaceName;
 		LOGFONT	m_lf;
 
