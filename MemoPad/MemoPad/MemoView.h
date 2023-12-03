@@ -55,11 +55,13 @@ protected:
 		}	m_eEncode;
 		int	m_cbEOL;
 
+		int	m_nRepeatTime;
 		bool	m_bFindUp,
 			m_bFindCase,
-			m_bReplace,
 			m_bReplaceAll;
 		int	m_nFound;
+		int	m_xFirst;
+		bool	m_bWrapped;
 		CString	m_strFind,
 			m_strReplace;
 	class	CUndo{
@@ -75,7 +77,7 @@ protected:
 		CArray	<CUndo, CUndo&>
 			m_aUndo;
 		INT_PTR	m_iUndo;
-		bool	m_bUndoing;
+		bool	m_bNoDiff;
 
 	virtual	BOOL	PreTranslateMessage( MSG* pMsg );
 

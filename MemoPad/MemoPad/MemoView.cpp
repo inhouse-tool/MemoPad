@@ -54,6 +54,8 @@ CMemoView::CMemoView( void )
 	m_bFindCase   = false;
 	m_bReplaceAll = false;
 	m_nFound      = 0;
+	m_xFirst      = -1;
+	m_bWrapped    = false;
 	m_iUndo       = 0;
 	m_bNoDiff    = false;
 }
@@ -778,6 +780,9 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		m_bReplaceAll = wParam == FIND_COMMAND_ALL;
 		m_strFind     = pFind->strFindWhat;
 		m_strReplace  = pFind->strReplaceWith;
+		m_nFound      = 0;
+		m_xFirst      = -1;
+		m_bWrapped    = false;
 	}
 
 	// Do Replace now for the last found string.
@@ -834,7 +839,32 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		}
 
 		if	( x >= 0 ){
-			m_nFound++;
+			if	( m_xFirst >= 0 ){
+				if	( !m_bWrapped )
+					;
+				else if	( m_bFindUp ){
+					if	( x <= m_xFirst )
+						x = -1;
+				}
+				else{
+					if	( x >= m_xFirst )
+						x = -1;
+				}
+			}
+			else
+				m_xFirst = x;
+			if	( x >= 0 ){
+				m_nFound++;
+				if	( m_bReplaceAll ){
+					if	( x == m_xFirst ){
+						int	xOffset = m_strReplace.Find( m_strFind );
+						if	( xOffset > 0 )
+							m_xFirst += xOffset;
+					}
+					else if	( x <  m_xFirst )
+						m_xFirst += m_strReplace.GetLength() - m_strFind.GetLength();
+				}
+			}
 			break;
 		}
 		else if	( bWrapped ){
@@ -850,10 +880,14 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		}
 		else if	( m_bFindUp ){
 			bWrapped = true;
+			if	( m_nFound > 0 )
+				m_bWrapped = true;
 			x = strLines.GetLength();
 		}
 		else{
 			bWrapped = true;
+			if	( m_nFound > 0 )
+				m_bWrapped = true;
 			x = 0;
 		}
 	}
