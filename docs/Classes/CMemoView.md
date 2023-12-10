@@ -741,7 +741,7 @@ To implement multi-stage Undo/Redo,
 the '*view*' must record following information at each modification:
 
 * What is done ( inserted / deleted / replaced )
-* What is changed ( the text is inserted / deleted / replaced )
+* What is changed ( the text inserted / deleted / replaced )
 * Where is changed ( the index in the [`CEdit`](https://learn.microsoft.com/en-us/cpp/mfc/reference/cedit-class) )
 
 These information is packed in the class `CUndo`, and the array of `CUndo` is a 'Undo Buffer' in this '*view*'.
