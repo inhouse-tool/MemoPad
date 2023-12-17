@@ -31,7 +31,6 @@ protected:
 		UINT	m_uClicked;
 
 	virtual	BOOL	OnInitDialog( void );
-	virtual	void	OnOK( void );
 
 	afx_msg	void	OnShowWindow( BOOL bShow, UINT nStatus );
 	afx_msg	void	OnSysCommand( UINT nID, LPARAM lParam );

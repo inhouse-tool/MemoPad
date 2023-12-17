@@ -57,17 +57,6 @@ CFindDlg::OnInitDialog( void )
 	return	TRUE;
 }
 
-void
-CFindDlg::OnOK( void )
-{
-	CString	str;
-	GetDlgItem( IDC_EDIT_FIND )->GetWindowText( str );
-	if	( !str.IsEmpty() )
-		OnClickButton( IDC_BUTTON_NEXT );
-
-	ShowWindow( SW_HIDE );
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 // Message Handlers
 
@@ -146,7 +135,7 @@ CFindDlg::OnClickButton( UINT uID )
 	}
 
 	WPARAM	wparam = ( (WPARAM)uID - IDC_BUTTON_NEXT ) + FIND_COMMAND_NEXT;
-	CWnd*	pwnd = GetOwner();
-	if	( pwnd && !m_find.strFindWhat.IsEmpty() )
-		pwnd->PostMessage( WM_FIND, wparam, (LPARAM)&m_find );
+	CWnd*	pView = GetOwner();
+	if	( pView && !m_find.strFindWhat.IsEmpty() )
+		pView->PostMessage( WM_FIND, wparam, (LPARAM)&m_find );
 }

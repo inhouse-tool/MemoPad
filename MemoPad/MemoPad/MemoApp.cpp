@@ -1,4 +1,4 @@
-// MemoPad.cpp : Defines the class behaviors for the application.
+// MemoApp.cpp : Defines the class behaviors for the application.
 //
 
 #include "pch.h"
@@ -48,6 +48,9 @@ CMemoApp::DoMessageBox( LPCTSTR lpszPrompt, UINT nType, UINT nIDPrompt )
 	return	CWinApp::DoMessageBox( lpszPrompt, nType, nIDPrompt );
 #endif
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Message Handlers
 
 BEGIN_MESSAGE_MAP( CMemoApp, CWinApp )
 	ON_COMMAND( ID_HELP_INDEX, OnInfoOnWeb )

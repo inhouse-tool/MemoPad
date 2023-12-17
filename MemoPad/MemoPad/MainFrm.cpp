@@ -78,11 +78,12 @@ CMainFrame::PreTranslateMessage( MSG* pMsg )
 {
 	// Closing messages are caught by the View to preceed WM_CLOSE finish Dark mode.
 
-	if	(   pMsg->hwnd == m_hWnd &&
+	if	(   pMsg->hwnd == m_hWnd && (
 		  ( pMsg->message == WM_NCLBUTTONDOWN &&
-		    pMsg->wParam  == HTCLOSE ) ||
+		    pMsg->wParam  == HTCLOSE             ) ||
 		  ( pMsg->message == WM_SYSCOMMAND &&
-		    pMsg->wParam  == SC_CLOSE ) ){
+		    pMsg->wParam  == SC_CLOSE         )
+		  ) ){
 		m_wndView.PostMessage( WM_COMMAND, ID_FILE_CLOSE, NULL );
 		return	TRUE;
 	}
@@ -382,6 +383,9 @@ CMainFrame::OnIndicator( WPARAM wParam, LPARAM lParam )
 
 	return	0;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Specific Functions
 
 void
 CMainFrame::CreateClient( void )
