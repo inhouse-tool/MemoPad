@@ -134,6 +134,8 @@ protected:
 		BOOL	CanRedo( void );
 		void	Undo( void );
 		void	Redo( void );
+		void	SelectWord( void );
+		UINT	TypeOfChar( TCHAR ch );
 		void	SetFont( LOGFONT* plf );
 		CString	GetSelected( void );
 		bool	IsPasteable( void );

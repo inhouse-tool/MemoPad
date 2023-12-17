@@ -134,6 +134,10 @@ CMemoView::PreTranslateMessage( MSG* pMsg )
 		else
 			SetTimer( TID_INDICATE, 0, NULL );
 	}
+	else if( pMsg->message == WM_LBUTTONDBLCLK ){
+		SelectWord();
+		return	TRUE;
+	}
 
 	return	CEdit::PreTranslateMessage( pMsg );
 }
@@ -615,14 +619,17 @@ CMemoView::OnEditFind( void )
 void
 CMemoView::OnEditFindNext( void )
 {
+	m_nFound = 0;
 	OnFind( FIND_COMMAND_NEXT, 0 );
 }
 
 void
 CMemoView::OnEditFindPrev( void )
 {
+	m_nFound = 0;
 	m_bFindUp = !m_bFindUp;
 	OnFind( FIND_COMMAND_NEXT, 0 );
+	m_bFindUp = !m_bFindUp;
 }
 
 void
@@ -1770,6 +1777,85 @@ CMemoView::Redo( void )
 	// Just in case file image is left from / returned to the original, renew '*' of title.
 
 	RenewTitle();
+}
+
+void
+CMemoView::SelectWord( void )
+{
+	int	xStart, xEnd;
+	GetSel( xStart, xEnd );
+
+	UINT	uSel = TypeOfChar( m_strLines[xStart] );
+	if	( uSel <= 0 )
+		if	( m_strLines[xStart] == '\t' )
+			;
+		else if	( m_strLines[xStart] == '\r' )
+			;
+		else if	( m_strLines[xStart] == '\n' )
+			;
+		else if	( xStart > 0 )
+			if	( TypeOfChar( m_strLines[xStart-1] ) > uSel )
+				uSel = TypeOfChar( m_strLines[--xStart] );
+
+	int	xSel = xStart;
+	for	( ;; )
+		if	( xStart <= 0 )
+			break;
+		else if	( TypeOfChar( m_strLines[xStart-1] ) == uSel )
+			xStart--;
+		else{
+			TRACE( L"[%d]: '%c' (%04x)\n", xStart-1, m_strLines[xStart-1], TypeOfChar( m_strLines[xStart-1] ) );//DBG
+			break;
+		}
+
+	if	( m_strLines[xSel] == '\r' || m_strLines[xSel] == '\n' )
+		;
+	else
+		for	( ;; )
+			if	( xEnd >= m_strLines.GetLength()-1 )
+				break;
+			else if	( TypeOfChar( m_strLines[xEnd+1] ) == uSel )
+				xEnd++;
+			else{
+				TRACE( L"[%d]: '%c' (%04x)\n", xEnd+1, m_strLines[xEnd+1], TypeOfChar( m_strLines[xEnd+1] ) );//DBG
+				break;
+			}
+
+	SetSel( xStart, xEnd+1 );
+}
+
+UINT
+CMemoView::TypeOfChar( TCHAR ch )
+{
+	if	( ch <= ' ' )
+		return	0;
+	else if	( ch <  '0' )
+		return	1;
+	else if( ch >= ':' &&
+		 ch <= '@' )
+		return	1;
+	else if( ch >= '[' &&
+		 ch <= '`' )
+		return	1;
+	else if( ch >= '{' &&
+		 ch <= '~' )
+		return	1;
+	else{
+		WORD	wType = 0;
+		GetStringTypeW( CT_CTYPE1, &ch, 1, &wType );
+		TRACE( L"'%c' (%04x)\n", ch, wType );//DBG
+
+		if	( wType & C1_SPACE )
+			return	0;
+		else if	( wType & C1_BLANK )
+			return	0;
+		else if	( wType & C1_CNTRL )
+			return	0;
+		else if	( wType & C1_PUNCT )
+			return	1;
+		else
+			return	2;
+	}
 }
 
 void
