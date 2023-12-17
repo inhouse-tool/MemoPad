@@ -33,7 +33,7 @@ Popups a '*darkened*'
 
 Give a prompt text as 1st argument and type of style as 2nd argument like
 [`AfxMessageBox`](https://learn.microsoft.com/en-us/cpp/mfc/reference/cstring-formatting-and-message-box-display#afxmessagebox).
-Then a '*darkened*' messagebox popups.
+Then a '*darkened*' message box popups.
 Its return value is compatible with
 [`AfxMessageBox`](https://learn.microsoft.com/en-us/cpp/mfc/reference/cstring-formatting-and-message-box-display#afxmessagebox).
 
@@ -272,7 +272,7 @@ macro was called.
 ### `LRESULT OnMessageDlg( WPARAM wParam, LPARAM lParam )`
 
 Handles `WM_MESSAGEDLG` message ( defined in this class )
-to serve other windows a function to popup a '*darkened*' messagebox
+to serve other windows a function to popup a '*darkened*' message box
 
 This is the endpoint function when the
 [`MessageDlg()`](#messagedlg-lpszprompt-ntype-)

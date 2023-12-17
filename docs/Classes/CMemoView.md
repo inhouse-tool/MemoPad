@@ -106,6 +106,8 @@ to toggle Insert/Overwrite mode when the 'Insert' key was hit.
 1. Catch [`WM_KEYUP`](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-keyup) and
 [`WM_LBUTTONUP`](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttonup) messages
 to renew the text in the status bar.
+1. Catch [`WM_LBUTTONDBLCLK`](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttondblclk) messages
+to select a word like Notepad on Windows11 ( not like Windows10 ).
 
 
 
@@ -917,9 +919,35 @@ So one Redo is to do:
 If the all Undos were Redo'ed, `m_iUndo` reaches size of the 'Undo Buffer' which means 'no more Redo is possible'.
 
 
+### `void SelectWord( void )`
+
+Selects a word
+
+Called from [`PreTranslateMessage()`](#bool-pretranslatemessage-msg-pmsg-)
+to select a word according to the current cursor position.
+
+This selection is done like Notepad on Windows11 ( not like Windows10 ),
+except 'end-of-line' is not selected.
+
+
+### `UINT TypeOfChar( TCHAR ch )`
+
+Returns the type of given character
+
+This function return the type of given character as follow.
+
+| Return value	| Character type		|
+| ---:		| :---				|
+| `0`		| Control characters and spaces	|
+| `1`		| Signs				|
+| `2`		| Others			|
+
+The return value is used to separate a word in `SelectWord()`.
+
+
 ### `void SetFont( LOGFONT* plf )`
 
-Set the font of the '*view*' with given `LOGFONT`
+Sets the font of the '*view*' with given `LOGFONT`
 
 Called from [`OnTimer()`](#void-ontimer-uint_ptr-nidevent-)
 to set the size of the font
