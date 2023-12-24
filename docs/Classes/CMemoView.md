@@ -995,7 +995,7 @@ for
 [device mode](https://learn.microsoft.com/en-us/windows-hardware/drivers/display/the-devmodew-structure)
 in the name of driver as `"WINSPOOL"`.
 1. [Start the document](https://learn.microsoft.com/en-us/cpp/mfc/reference/cdc-class#startdoc)
-in the device context.
+in the device context with a unique job name made by [`MakeJobName()`](#cstring-makejobname-void-).
 1. Call [`PrintContent()`](#void-printcontent-cdc-pdc-cprintparam-param-) to print the content in the '*view*'.
 1. [Delete the device context](https://learn.microsoft.com/en-us/cpp/mfc/reference/cdc-class#deletedc).
 1. Release the
@@ -1128,7 +1128,6 @@ The text format is compatible with
 Plus, the command `"&b"` is added in this '*view*'.
 This `"&b"` is a original command to draw a border line between the margin and the text body.
 
-
 ### `bool IsPageToPrint( UINT uPage, CUIntArray& uaPages )`
 
 Returns whether the given page number is to print out or not
@@ -1136,3 +1135,23 @@ Returns whether the given page number is to print out or not
 [The print dialog](CPrintDlg.md) can specify the range of pages to print out.
 Given argument `uaPages` is the pages specified in [the print dialog](CPrintDlg.md).
 Referring that, this function returns `true` for the pages to be printed, `false` to the pages to be skipped.
+
+
+### `CString MakeJobName( void )`
+
+Returns a print job name
+
+This function makes a print job name according to:
+
+* The file name to print
+* The user account name who entered the print job
+* The host name which entered the print job
+
+like:
+
+`Explanations.txt - Fumio.KISHIDA@KishidaNotePC`
+
+to distinguish who enterd the print job,
+just in case the job was stalled in the print server.
+( In the case of above example, the administrator of the server would inform KISHIDA like
+"Hi, Fumio! Your explanations are stalled!" )
