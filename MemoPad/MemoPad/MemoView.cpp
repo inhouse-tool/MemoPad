@@ -1068,7 +1068,7 @@ CMemoView::SaveFile( CString strFile )
 			if	( m_cbEOL == 1 ){
 				CStringA strLinesA = (char*)pbData;
 				strLinesA.Replace( "\r\n", "\n" );
-				memcpy( pbData, strLinesA.GetBuffer(), strLinesA.GetLength()+1 );
+				memcpy( pbData, strLinesA.GetBuffer(), (size_t)strLinesA.GetLength()+1 );
 			}
 			cbData = (int)strlen( (char*)pbData );
 		}
@@ -1803,10 +1803,8 @@ CMemoView::SelectWord( void )
 			break;
 		else if	( TypeOfChar( m_strLines[xStart-1] ) == uSel )
 			xStart--;
-		else{
-			TRACE( L"[%d]: '%c' (%04x)\n", xStart-1, m_strLines[xStart-1], TypeOfChar( m_strLines[xStart-1] ) );//DBG
+		else
 			break;
-		}
 
 	if	( m_strLines[xSel] == '\r' || m_strLines[xSel] == '\n' )
 		;
@@ -1816,10 +1814,8 @@ CMemoView::SelectWord( void )
 				break;
 			else if	( TypeOfChar( m_strLines[xEnd+1] ) == uSel )
 				xEnd++;
-			else{
-				TRACE( L"[%d]: '%c' (%04x)\n", xEnd+1, m_strLines[xEnd+1], TypeOfChar( m_strLines[xEnd+1] ) );//DBG
+			else
 				break;
-			}
 
 	SetSel( xStart, xEnd+1 );
 }
@@ -1843,7 +1839,6 @@ CMemoView::TypeOfChar( TCHAR ch )
 	else{
 		WORD	wType = 0;
 		GetStringTypeW( CT_CTYPE1, &ch, 1, &wType );
-		TRACE( L"'%c' (%04x)\n", ch, wType );//DBG
 
 		if	( wType & C1_SPACE )
 			return	0;
@@ -1946,9 +1941,10 @@ CMemoView::Print( CPrintParam& param )
 
 			CDC	dc;
 			if	( dc.CreateDC( _T("WINSPOOL"), szPrinter, NULL, pDevMode ) ){
+				CString	strJob = MakeJobName();
 				DOCINFO	di = {};
 				di.cbSize = sizeof( di );
-				di.lpszDocName  = m_strFile.GetBuffer();
+				di.lpszDocName  = strJob.GetBuffer();
 				di.lpszOutput   = NULL;
 				di.lpszDatatype = NULL;
 				di.fwType       = 0;
@@ -1989,6 +1985,7 @@ CMemoView::PrintContent( CDC* pDC, CPrintParam& param )
 	pDC->SetMapMode( MM_LOENGLISH );
 	pDC->SelectObject( m_font.m_hObject );
 	pDC->SetTextColor( RGB( 0, 0, 0 ) );
+	pDC->SetBkMode( TRANSPARENT );
 
 	// Calculate sizes in inch.
 
@@ -2020,8 +2017,6 @@ CMemoView::PrintContent( CDC* pDC, CPrintParam& param )
 		CSize	size = pDC->GetTextExtent( _T("W") );
 		ptLine.Offset( 0, -size.cy );
 		rectTop.SetRect( rectPage.left, rectPage.bottom, rectPage.right, rectPage.bottom + ptLine.y );
-
-		pDC->SetViewportOrg( rectPage.left, rectPage.bottom );
 	}
 
 	// Print out all lines.
@@ -2375,12 +2370,11 @@ CMemoView::PrintMargin( CDC* pDC, CRect rectMargin, CString strMargin, int nPage
 	if	( x >= 0 ){
 		strMargin.Delete( x, 2 );
 		int	y = rectMargin.bottom-rectMargin.Height()/2;
-		CSize	size = pDC->GetTextExtent( _T("W") );
 		if	( bHeader )
-			y -= size.cy;
+			y -= rectMargin.Height()/4;
 		else
-			y += size.cy;
-		pDC->MoveTo( rectMargin.left, y );
+			y += rectMargin.Height()/4;
+		pDC->MoveTo( rectMargin.left,  y );
 		pDC->LineTo( rectMargin.right, y );
 	}
 
@@ -2405,4 +2399,29 @@ CMemoView::IsPageToPrint( UINT uPage, CUIntArray& uaPages )
 				return	true;
 
 	return	false;
+}
+
+CString
+CMemoView::MakeJobName( void )
+{
+	int	x = m_strFile.ReverseFind( '\\' );
+	CString	strName = m_strFile.Mid( x+1 );
+	CString	strUser;
+	{
+		TCHAR	achUser[UNLEN+1];
+		DWORD	cchUser = UNLEN;
+		GetUserName( achUser, &cchUser );
+		strUser = achUser;
+	}
+	CString	strHost;
+	{
+		TCHAR	achHost[MAX_COMPUTERNAME_LENGTH+1];
+		DWORD	cchHost = MAX_COMPUTERNAME_LENGTH;
+		GetComputerName( achHost, &cchHost );
+		strHost = achHost;
+	}
+
+	CString	strJob;
+	strJob.Format( _T("%s - %s@%s"), strName.GetBuffer(), strUser.GetBuffer(), strHost.GetBuffer() );
+	return	strJob;
 }

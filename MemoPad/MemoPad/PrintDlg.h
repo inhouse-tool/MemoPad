@@ -62,7 +62,13 @@ protected:
 		CRect	m_rectPortrait,
 			m_rectLandscape;
 
+	    CWinThread*	m_pthCheck;
+		HANDLE	m_hPrinter;
+		CString	m_strPrinter;
+		CString	m_strItem;
+
 	virtual	BOOL	OnInitDialog( void );
+	virtual	BOOL	DestroyWindow( void );
 	virtual	void	OnOK( void );
 	virtual	BOOL	PreTranslateMessage( MSG* pMsg );
 
@@ -74,8 +80,14 @@ protected:
 	afx_msg	void	OnFocusPages( void );
 	DECLARE_MESSAGE_MAP()
 
-		void	ListPrinters( void );
 		void	UpdatePaperSize( bool bWhole );
 		void	UpdateOrientation( void );
 		bool	GetPages( CString strPages );
+
+	static	UINT	EnumPrintersTh( LPVOID pParam );
+		void	ListPrinters( void );
+		void	CheckPrinters( void );
+		CString	GetItemFromPath( CString strPath );
+		CString	GetPathFromItem( CString strItem );
+		int	GetComboIndexByItemText( CComboBox* pCombo, CString strItem );
 };

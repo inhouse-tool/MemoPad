@@ -10,6 +10,10 @@
 #define	strtol		wcstol
 #endif//UNICODE
 
+#include <Winspool.h>
+#define PRINTER_STATUS_CHECKING		0x40000000
+#define PRINTER_STATUS_CONNECTING	0x80000000
+
 IMPLEMENT_DYNAMIC( CPrintDlg, CDialog )
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -18,6 +22,8 @@ IMPLEMENT_DYNAMIC( CPrintDlg, CDialog )
 CPrintDlg::CPrintDlg( CWnd* pParent )
 	: CDialog( IDD_PRINT, pParent )
 {
+	m_pthCheck = NULL;
+	m_hPrinter = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -49,28 +55,25 @@ CPrintDlg::OnInitDialog( void )
 	m_param.m_nTab       = pApp->GetProfileInt(    _T("Print"), _T("Tab"),        8 );
 
 	m_paramOrg = m_param;
+	m_strPrinter = m_param.m_strPrinter;
+	m_strItem = GetItemFromPath( m_strPrinter );
+
+	// Start the checking thread.
+
+	GetDlgItem( IDOK )->EnableWindow( FALSE );
+
+	m_pthCheck = AfxBeginThread( EnumPrintersTh, (LPVOID)this, 0, CREATE_SUSPENDED );
+	m_pthCheck->m_bAutoDelete = TRUE;
+	m_pthCheck->ResumeThread();
 
 	// Initialize controls.
-
-	CComboBox*	pCombo;
-
-	ListPrinters();
-	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
-	int	n = pCombo->GetCount();
-	for	( int i = 0; i < n; i++ ){
-		CString	str;
-		pCombo->GetLBText( i, str );
-		if	( str == m_param.m_strPrinter ){
-			pCombo->SetCurSel( i );
-			break;
-		}
-	}
 
 	UINT	uid;
 	uid = m_param.m_bInch? IDC_RADIO_INCH: IDC_RADIO_MM;
 	((CButton*)GetDlgItem( uid ))->SetCheck( BST_CHECKED );
 	UpdatePaperSize( true );
 
+	CComboBox*	pCombo;
 	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_SIZE );
 	for	( int i = 0; i < pCombo->GetCount(); i++ )
 		if	( (DWORD)pCombo->GetItemData( i ) == m_param.m_iPaperSize ){
@@ -102,6 +105,27 @@ CPrintDlg::OnInitDialog( void )
 	return	TRUE;
 }
 
+BOOL
+CPrintDlg::DestroyWindow( void )
+{
+#pragma warning( push )
+#pragma warning( disable : 6258 )
+
+	if	( m_pthCheck ){
+		TerminateThread( m_pthCheck->m_hThread, 0 );
+		delete	m_pthCheck;
+		m_pthCheck = NULL;
+	}
+	if	( m_hPrinter ){
+		ClosePrinter( m_hPrinter );
+		m_hPrinter = NULL;
+	}
+
+	return	CDialog::DestroyWindow();
+
+#pragma warning( pop )
+}
+
 void
 CPrintDlg::OnOK( void )
 {
@@ -120,7 +144,9 @@ CPrintDlg::OnOK( void )
 
 	CComboBox*	pCombo;
 	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
-	pCombo->GetLBText( pCombo->GetCurSel(), m_param.m_strPrinter );
+	CString	strItem;
+	pCombo->GetLBText( pCombo->GetCurSel(), strItem );
+	m_param.m_strPrinter = GetPathFromItem( strItem );
 
 	m_param.m_bInch = ((CButton*)GetDlgItem( IDC_RADIO_INCH ))->GetCheck() == BST_CHECKED;
 
@@ -187,24 +213,26 @@ CPrintDlg::PreTranslateMessage( MSG* pMsg )
 
 BEGIN_MESSAGE_MAP( CPrintDlg, CDialog )
 	ON_CBN_SELCHANGE( IDC_COMBO_PRINTERS, OnSelPrinters )
-	ON_EN_SETFOCUS( IDC_EDIT_PAGES, OnFocusPages )
+	ON_EN_SETFOCUS(   IDC_EDIT_PAGES,     OnFocusPages )
 	ON_CONTROL_RANGE( BN_CLICKED, IDC_RADIO_MM,       IDC_RADIO_INCH,      OnRadioSize )
 	ON_CONTROL_RANGE( BN_CLICKED, IDC_RADIO_PORTRAIT, IDC_RADIO_LANDSCAPE, OnRadioOrientation )
-	ON_CBN_SELCHANGE( IDC_COMBO_SIZE, OnSelSize )
-	ON_BN_CLICKED( IDC_BUTTON_MARGINS, OnClickMargins )
+	ON_CBN_SELCHANGE( IDC_COMBO_SIZE,     OnSelSize )
+	ON_BN_CLICKED(    IDC_BUTTON_MARGINS, OnClickMargins )
 END_MESSAGE_MAP()
-
-#include <Winspool.h>
 
 void
 CPrintDlg::OnSelPrinters( void )
 {
 	CComboBox*	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
-	int	iSel = pCombo->GetCurSel();
+	int	i = pCombo->GetCurSel();
 
-	DWORD	dwStatus = (DWORD)pCombo->GetItemData( iSel );
+	DWORD	dwStatus = (DWORD)pCombo->GetItemData( i );
 
 	CString	strStatus;
+	if	( dwStatus & PRINTER_STATUS_CHECKING )
+		strStatus += _T("Checking... ");
+	if	( dwStatus & PRINTER_STATUS_CONNECTING )
+		strStatus += _T("Connecting... ");
 	if	( dwStatus & PRINTER_STATUS_BUSY )
 		strStatus += _T("Busy ");
 	if	( dwStatus & PRINTER_STATUS_ERROR )
@@ -232,6 +260,8 @@ CPrintDlg::OnSelPrinters( void )
 
 	CStatic*	pStatic = (CStatic*)GetDlgItem( IDC_STATIC_STATUS );
 	pStatic->SetWindowText( strStatus );
+
+	GetDlgItem( IDOK )->EnableWindow( dwStatus? FALSE: TRUE );
 }
 
 void
@@ -283,43 +313,6 @@ CPrintDlg::OnFocusPages( void )
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Specific Functions
-
-void
-CPrintDlg::ListPrinters( void )
-{
-	DWORD	dwFlags = PRINTER_ENUM_LOCAL;
-	CButton*	pButton = (CButton*)GetDlgItem( IDC_CHECK_REMOTE );
-
-	DWORD	cbBuf = 0;
-	DWORD	nInfo = 0;
-	EnumPrinters( dwFlags, NULL, 1, NULL,      0, &cbBuf, &nInfo );
-
-	if	( !cbBuf )
-		return;
-
-	BYTE*	pbBuf = new BYTE[cbBuf];
-	EnumPrinters( dwFlags, NULL, 1, pbBuf, cbBuf, &cbBuf, &nInfo );
-
-	PRINTER_INFO_1*	pInfo = (PRINTER_INFO_1*)pbBuf;
-
-	CComboBox*	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
-	pCombo->ResetContent();
-	for	( DWORD i = 0; i < nInfo; i++ ){
-		pCombo->AddString( pInfo->pName );
-		DWORD	cbBuf2 = 0;
-		EnumPrinters( dwFlags, pInfo->pName, 2, NULL,        0, &cbBuf2, &nInfo );
-		BYTE*	pbBuf2 = new BYTE[cbBuf2];
-		EnumPrinters( dwFlags, pInfo->pName, 2, pbBuf2, cbBuf2, &cbBuf2, &nInfo );
-		PRINTER_INFO_2*	pInfo2 = (PRINTER_INFO_2*)pbBuf2;
-		pCombo->SetItemData( pCombo->GetCount()-1, pInfo2->Status );
-		delete[]	pbBuf2;
-		pInfo++;
-	}
-	pCombo->SetCurSel( 0 );
-	OnSelPrinters();
-
-	delete[]	pbBuf;
-}
 
 void
 CPrintDlg::UpdatePaperSize( bool bWhole )
@@ -479,4 +472,177 @@ CPrintDlg::GetPages( CString strPages )
 	}
 
 	return	true;
+}
+
+UINT
+CPrintDlg::EnumPrintersTh( LPVOID pParam )
+{
+	((CPrintDlg*)pParam)-> ListPrinters();
+	((CPrintDlg*)pParam)->CheckPrinters();
+	((CPrintDlg*)pParam)->m_pthCheck = NULL;
+
+	return	0;	
+}
+
+void
+CPrintDlg::ListPrinters( void )
+{
+	CComboBox*	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
+	pCombo->ResetContent();
+
+	// Enumerate local printers first, then check remote printers.
+
+	DWORD	adwFlags[2]  = { PRINTER_ENUM_LOCAL,      PRINTER_ENUM_CONNECTIONS };
+	DWORD	adwStatus[2] = { PRINTER_STATUS_CHECKING, PRINTER_STATUS_CONNECTING };
+
+	for	( int iTurn = 0; iTurn < 2; iTurn++ ){
+		DWORD	dwFlags = adwFlags[iTurn];
+		DWORD	cbBuf = 0;
+		DWORD	nInfo = 0;
+
+		// Enumerate the printers ( this may take 50s or more just after a reboot of the client ).
+
+		EnumPrinters( dwFlags, NULL, 1, NULL, 0, &cbBuf, &nInfo );
+
+		if	( cbBuf ){
+			BYTE*	pbBuf = new BYTE[cbBuf];
+			EnumPrinters( dwFlags, NULL, 1, pbBuf, cbBuf, &cbBuf, &nInfo );
+
+			PRINTER_INFO_1*	pInfo = (PRINTER_INFO_1*)pbBuf;
+
+			for	( DWORD iItem = 0; iItem < nInfo; iItem++ ){
+
+				// Add the printer as an item of th combo box.
+
+				CString	strItem = GetItemFromPath( pInfo->pName );
+				pCombo->AddString( strItem );
+
+				// Set the status of the printer as 'Connecting...'.
+
+				int	i = GetComboIndexByItemText( pCombo, strItem );
+				if	( i >= 0 ){
+					pCombo->SetItemData( i, adwStatus[iTurn] );
+					if	( strItem == m_strItem ){
+						pCombo->SetCurSel( i );
+						OnSelPrinters();
+					}
+				}
+
+				pInfo++;
+			}
+
+			delete[]	pbBuf;
+		}
+	}
+}
+
+void
+CPrintDlg::CheckPrinters( void )
+{
+	CComboBox*	pCombo = (CComboBox*)GetDlgItem( IDC_COMBO_PRINTERS );
+
+	// Check local printers first, then check remote printers.
+
+	for	( int iTurn = 0; iTurn < 2; iTurn++ ){
+
+		DWORD	dwToBeChecked = ( iTurn == 0 )? PRINTER_STATUS_CHECKING: PRINTER_STATUS_CONNECTING;
+		int	nItem = pCombo->GetCount();
+
+		for	( int iItem = 0; iItem < nItem; iItem++ ){
+			if	( pCombo->GetItemData( iItem ) == dwToBeChecked ){
+
+				pCombo->GetLBText( iItem, m_strItem );
+				m_strPrinter = GetPathFromItem( m_strItem );
+
+				// Open the printer w/o cache ( this may take 80s or more when the server is down ).
+
+				PRINTER_OPTIONS	opt = {};
+				opt.cbSize = sizeof( opt );
+				opt.dwFlags = PRINTER_OPTION_NO_CACHE;
+				BOOL	bDone = OpenPrinter2( m_strPrinter, &m_hPrinter, NULL, &opt );
+
+				// Get the latest information of the printer.
+
+				if	( bDone ){
+					DWORD	cbBuf = 0;
+					bDone = GetPrinter( m_hPrinter, 2, NULL,      0, &cbBuf );
+					BYTE*	pbBuf = new BYTE[cbBuf];
+					bDone = GetPrinter( m_hPrinter, 2, pbBuf, cbBuf, &cbBuf );
+
+					if	( bDone ){
+						PRINTER_INFO_2*	pInfo = (PRINTER_INFO_2*)pbBuf;
+						int	i = GetComboIndexByItemText( pCombo, m_strItem );
+						if	( i >= 0 ){
+							pCombo->SetItemData( i, pInfo->Status );
+							if	( i == pCombo->GetCurSel() )
+								OnSelPrinters();
+						}
+					}
+
+					delete[]	pbBuf;
+				}
+
+				// Close the printer ( if it was opened ).
+
+				if	( m_hPrinter ){
+					ClosePrinter( m_hPrinter );
+					m_hPrinter = NULL;
+				}
+
+				// Set the status of the printer as 'Offline' ( if could not get information of it ).
+
+				if	( !bDone ){
+					int	i = GetComboIndexByItemText( pCombo, m_strItem );
+					if	( i >= 0 ){
+						pCombo->SetItemData( i, PRINTER_STATUS_OFFLINE );
+						if	( i == pCombo->GetCurSel() )
+							OnSelPrinters();
+					}
+				}
+			}
+		}
+	}
+}
+
+CString
+CPrintDlg::GetItemFromPath( CString strPath )
+{
+	if	( strPath.Left( 2 ) == _T("\\\\") ){
+		int	x = strPath.Find( _T("\\"), 2 );
+		CString	strServer = strPath.Mid( 2, x-2 );
+		CString	strDevice = strPath.Mid( x+1 );
+		CString	strItem;
+		strItem.Format( _T("%s on %s"), strDevice.GetBuffer(), strServer.GetBuffer() );
+		return	strItem;
+	}
+	else
+		return	strPath;
+}
+
+CString
+CPrintDlg::GetPathFromItem( CString strItem )
+{
+	int	x = strItem.Find( _T(" on ") );
+	if	( x > 0 ){
+		CString	strServer = strItem.Mid( x+4 );
+		CString	strDevice = strItem.Left( x );
+		CString	strPath;
+		strPath.Format( _T("\\\\%s\\%s"), strServer.GetBuffer(), strDevice.GetBuffer() );
+		return	strPath;
+	}
+	else
+		return	strItem;
+}
+
+int
+CPrintDlg::GetComboIndexByItemText( CComboBox* pCombo, CString strItem )
+{
+	for	( int i = 0; i < pCombo->GetCount(); i++ ){
+		CString	str;
+		pCombo->GetLBText( i, str );
+		if	( str == strItem )
+			return	i;
+	}
+
+	return	-1;
 }

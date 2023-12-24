@@ -147,4 +147,5 @@ protected:
 		void	BreakLine( CDC* pDC, CRect& rectLine, CString& strLine, int& cx, UINT uFormat );
 		void	PrintMargin( CDC* pDC, CRect rectMargin, CString strMargin, int nPage );
 		bool	IsPageToPrint( UINT uPage, CUIntArray& uaPages );
+		CString	MakeJobName( void );
 };
