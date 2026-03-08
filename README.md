@@ -77,7 +77,7 @@ UTF-8 と判定し,
 
  [Releases](https://github.com/inhouse-tool/MemoPad/releases)
 にインストーラー `MemoPad.msi` を用意しました.
-まずはこれで[インストール](https://github.com/inhouse-tool/MemoPad/tree/master/Installation/README.md)しましょう.
+まずはこれで[インストール](https://github.com/inhouse-tool/MemoPad/tree/master/Installation#readme)しましょう.
 
 「.txt [ファイルとの関連付け](https://www.google.com/search?q=ファイルとの関連付け)」
 はご利用者自らやっていただく前提です.
