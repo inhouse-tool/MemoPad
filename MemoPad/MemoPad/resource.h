@@ -4,9 +4,10 @@
 //
 #define IDR_MAINFRAME                   128
 #define IDR_POPUP                       129
-#define ID_INDICATOR_CODE               130
-#define ID_INDICATOR_TYPE               131
-#define ID_INDICATOR_ZOOM               132
+#define ID_INDICATOR_CHAR               130
+#define ID_INDICATOR_CODE               131
+#define ID_INDICATOR_TYPE               132
+#define ID_INDICATOR_ZOOM               133
 #define IDD_PROPERTIES                  310
 #define IDD_FIND                        311
 #define IDD_FONT                        312
@@ -71,8 +72,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        317
-#define _APS_NEXT_COMMAND_VALUE         32792
+#define _APS_NEXT_COMMAND_VALUE         32796
 #define _APS_NEXT_CONTROL_VALUE         1047
-#define _APS_NEXT_SYMED_VALUE           133
+#define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

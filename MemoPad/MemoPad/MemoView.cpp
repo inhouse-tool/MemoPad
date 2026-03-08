@@ -41,6 +41,10 @@ CMemoView::CMemoView( void )
 	m_brBack = CreateSolidBrush( m_crBack );
 
 	m_bInsert = true;
+	m_bSelect = false;
+
+	m_xSelectStart = -1;
+	m_xSelectEnd   = -1;
 
 	m_nFontHeight    = 0;
 	m_nFontHeightOrg = 0;
@@ -54,14 +58,68 @@ CMemoView::CMemoView( void )
 	m_bFindCase   = false;
 	m_bReplaceAll = false;
 	m_nFound      = 0;
-	m_xFirst      = -1;
+	m_xFound1st   = -1;
 	m_bWrapped    = false;
 	m_iUndo       = 0;
-	m_bNoDiff    = false;
+	m_bNoDiff     = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Interface Functions
+
+#include <imm.h>
+#pragma comment( lib, "imm32.lib" )
+
+void
+CMemoView::SetArgument( CString strArg )
+{
+	// When launched with argument: Open the file specified by the argument.
+
+	if	( !strArg.IsEmpty() ){
+		while	( strArg[0] == '/' ){
+			strArg.Delete( 0, 1 );
+			TCHAR	chOpt = strArg[0];
+			strArg.Delete( 0, 1 );
+
+			// Option /s: Select specified indexes.
+
+			if	( chOpt == 's' || chOpt == 'S' ){
+				TCHAR*	pchArg = strArg.GetBuffer();
+				TCHAR*	pchLeft = NULL;
+				m_xSelectStart = strtol( pchArg, &pchLeft, 10 );
+				if	( *pchLeft == '-' ){
+					pchLeft++;
+					m_xSelectEnd = strtol( pchLeft, &pchLeft, 10 );
+				}
+				int	cchArg = (int)( pchLeft - pchArg );
+				strArg.Delete( 0, cchArg );
+				strArg.TrimLeft();
+				if	( m_xSelectEnd < 0 )
+					m_xSelectEnd = m_xSelectStart;
+			}
+
+			// Option /k: Turn on IME.
+
+			else if	( chOpt == 'k' || chOpt == 'K' ){
+				HIMC	hImc =
+				ImmGetContext( m_hWnd );
+				ImmSetOpenStatus( hImc, TRUE );
+				ImmReleaseContext( m_hWnd, hImc );
+
+				strArg.Delete( 0, 1 );
+				strArg.TrimLeft();
+			}
+		}
+		if	( strArg[0] == '"' ){
+			strArg.Delete( 0, 1 );
+			int	x = strArg.Find( '"' );
+			if	( x >= 0 )
+				strArg = strArg.Left( x );
+		}
+
+		LoadFile( strArg );
+	}
+}
 
 DWORD
 CMemoView::GetStatus( void )
@@ -82,7 +140,9 @@ CMemoView::GetStatus( void )
 	GetSel( xStart, xEnd );
 	if	( xStart != xEnd )
 		dwStatus |= STAT_SELECTED;
-	if	( IsPasteable() )
+	if	( IsClipboardFormatAvailable( CF_TEXT ) ||
+		  IsClipboardFormatAvailable( CF_OEMTEXT ) ||
+		  IsClipboardFormatAvailable( CF_UNICODETEXT ) )
 		dwStatus |= STAT_PASTEABLE;
 	if	( m_nFound > 0 )
 		dwStatus |= STAT_FOUND;
@@ -96,6 +156,15 @@ CMemoView::GetStatus( void )
 BOOL
 CMemoView::PreTranslateMessage( MSG* pMsg )
 {
+	if	( m_bSelect ){
+		if	( pMsg->message == WM_KEYDOWN ||
+			  pMsg->message == WM_LBUTTONDOWN ||
+			  pMsg->message == WM_LBUTTONDBLCLK ){
+			m_bSelect = false;
+			AfxGetMainWnd()->SetFocus();
+		}
+	}
+
 	if	( pMsg->message == WM_CHAR ){
 		if	( !m_bInsert ){
 			int	xStart, xEnd;
@@ -203,19 +272,6 @@ CMemoView::OnCreate( LPCREATESTRUCT lpCreateStruct )
 	PostMessage( WM_SETCURSOR, HTCLIENT, NULL );
 	DragAcceptFiles();
 
-	// When launched with argument: Open the file specified by the argument.
-
-	CString	strArg = AfxGetApp()->m_lpCmdLine;
-	if	( !strArg.IsEmpty() ){
-		if	( strArg[0] == '"' ){
-			strArg.Delete( 0, 1 );
-			int	x = strArg.Find( '"' );
-			if	( x >= 0 )
-				strArg = strArg.Left( x );
-		}
-		LoadFile( strArg );
-	}
-
 	SetTimer( TID_INDICATE, 0, NULL );
 
 	return	0;
@@ -315,6 +371,15 @@ CMemoView::OnTimer( UINT_PTR nIDEvent )
 	else if	( nIDEvent == TID_INDICATE ){
 		KillTimer( nIDEvent );
 
+		// Selected by arguments: Select the area.
+
+		if	( m_xSelectStart >= 0 ){
+			SetSel( m_xSelectStart, m_xSelectEnd );
+			m_bSelect = true;
+			m_xSelectStart = -1;
+			m_xSelectEnd   = -1;
+		}
+
 		// To renew cursor position: Calculate Line and Column.
 
 		int	xStart, xEnd;
@@ -326,13 +391,11 @@ CMemoView::OnTimer( UINT_PTR nIDEvent )
 
 		// Indicate the Line and Column.
 
-		CString	str;
-		str.Format( _T("Lin %d, Col %d"), y+1, x+1 );
-		SetIndicator( 0, str.GetBuffer() );
+		SetIndicatorOfPos( x, y );
 
 		// Not in insert mode: Show a square caret.
 
-		if	( !m_bInsert ){
+		if	( !m_bInsert || m_bSelect ){
 			CClientDC	dc( this );
 			HFONT	hFont = (HFONT)SendMessage( WM_GETFONT, 0, 0 );
 			HFONT	hFontOld = (HFONT)SelectObject( dc.m_hDC, hFont );
@@ -771,6 +834,7 @@ CMemoView::OnEditChange( void )
 	GetWindowText( m_strLines );
 	RenewTitle();
 	TakeDiff();
+	SetIndicatorOfSize();
 }
 
 LRESULT
@@ -788,7 +852,7 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		m_strFind     = pFind->strFindWhat;
 		m_strReplace  = pFind->strReplaceWith;
 		m_nFound      = 0;
-		m_xFirst      = -1;
+		m_xFound1st   = -1;
 		m_bWrapped    = false;
 	}
 
@@ -846,30 +910,30 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 		}
 
 		if	( x >= 0 ){
-			if	( m_xFirst >= 0 ){
+			if	( m_xFound1st >= 0 ){
 				if	( !m_bWrapped )
 					;
 				else if	( m_bFindUp ){
-					if	( x <= m_xFirst )
+					if	( x <= m_xFound1st )
 						x = -1;
 				}
 				else{
-					if	( x >= m_xFirst )
+					if	( x >= m_xFound1st )
 						x = -1;
 				}
 			}
 			else
-				m_xFirst = x;
+				m_xFound1st = x;
 			if	( x >= 0 ){
 				m_nFound++;
 				if	( m_bReplaceAll ){
-					if	( x == m_xFirst ){
+					if	( x == m_xFound1st ){
 						int	xOffset = m_strReplace.Find( m_strFind );
 						if	( xOffset > 0 )
-							m_xFirst += xOffset;
+							m_xFound1st += xOffset;
 					}
-					else if	( x <  m_xFirst )
-						m_xFirst += m_strReplace.GetLength() - m_strFind.GetLength();
+					else if	( x <  m_xFound1st )
+						m_xFound1st += m_strReplace.GetLength() - m_strFind.GetLength();
 				}
 			}
 			break;
@@ -930,9 +994,7 @@ CMemoView::OnFind( WPARAM wParam, LPARAM lParam )
 			int	y  = LineFromChar( x );
 			x -= LineIndex( y );
 
-			CString	str;
-			str.Format( _T("Lin %d, Col %d"), y+1, x+1 );
-			SetIndicator( 0, str.GetBuffer() );
+			SetIndicatorOfPos( x, y );
 		}
 	}
 
@@ -952,6 +1014,9 @@ CMemoView::OnFont( WPARAM wParam, LPARAM lParam )
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Specific Functions
+
+#define	CP_SHIFT_JIS	  932
+//efine	CP_UTF8		65001	// defined in <WinNls.h>
 
 bool
 CMemoView::LoadFile( CString strFile )
@@ -980,10 +1045,21 @@ CMemoView::LoadFile( CString strFile )
 		GetTextEncode( pbData, cbData );
 		CHAR*	pbText = (CHAR*)( pbData + m_cbBOM );
 
-		// ASCII or Shift JIS encoded: Take the image as ANSI text.
+		// ASCII encoded: Take the image as ANSI text.
 
-		if	( m_eEncode == ASCII || m_eEncode == ShiftJIS )
+		if	( m_eEncode == ASCII )
 			SetWindowTextA( GetSafeHwnd(), pbText );
+
+		// Shift JIS encoded: Take the image as Shift JIS encoded multibyte string.
+
+		else if	( m_eEncode == ShiftJIS ){
+			int	cwch =
+			::MultiByteToWideChar( CP_SHIFT_JIS, 0, pbText, -1, NULL, 0 );
+			WCHAR*	pwch = new WCHAR[cwch+1];
+			::MultiByteToWideChar( CP_SHIFT_JIS, 0, pbText, -1, pwch, cwch );
+			SetWindowText( pwch );
+			delete[]	pwch;
+		}
 
 		// UTF-8 encoded: Take the image as UTF-8 encoded sequence.
 
@@ -1038,6 +1114,9 @@ CMemoView::LoadFile( CString strFile )
 		m_aUndo.RemoveAll();
 		m_iUndo = 0;
 
+		SetIndicatorOfPos( 0, 0 );
+		SetIndicatorOfSize();
+
 		return	true;
 	}
 	else
@@ -1058,9 +1137,9 @@ CMemoView::SaveFile( CString strFile )
 		BYTE*	pbData = NULL;
 		DWORD	cbData = 0;
 
-		// ASCII or Shift JIS encoded: Get the image as ANSI text.
+		// ASCII encoded: Get the image as ASCII text.
 
-		if	( m_eEncode == ASCII || m_eEncode == ShiftJIS ){
+		if	( m_eEncode == ASCII ){
 			cbData = strLines.GetLength() * sizeof( WCHAR ) +1;
 			pbData = new BYTE[cbData];
 			memset( pbData, 0, cbData );
@@ -1073,6 +1152,18 @@ CMemoView::SaveFile( CString strFile )
 			cbData = (int)strlen( (char*)pbData );
 		}
 
+		// Shift JIS encoded: Get the image as Shift JIS text.
+
+		else if	( m_eEncode == ShiftJIS ){
+			WCHAR*	pwch = strLines.GetBuffer();
+			cbData =
+			::WideCharToMultiByte( CP_SHIFT_JIS, 0, pwch, -1, NULL,          0,      NULL, NULL );
+			pbData = new BYTE[cbData];
+			::WideCharToMultiByte( CP_SHIFT_JIS, 0, pwch, -1, (CHAR*)pbData, cbData, NULL, NULL );
+			if	( cbData > 0 && !pbData[cbData-1] )
+				cbData--;
+		}
+
 		// UTF-8 encoded: Get the image as UTF-8 sequence.
 
 		else if	( m_eEncode == UTF8 ){
@@ -1081,6 +1172,8 @@ CMemoView::SaveFile( CString strFile )
 			::WideCharToMultiByte( CP_UTF8, 0, pwch, -1, NULL,          0,      NULL, NULL );
 			pbData = new BYTE[cbData];
 			::WideCharToMultiByte( CP_UTF8, 0, pwch, -1, (CHAR*)pbData, cbData, NULL, NULL );
+			if	( cbData > 0 && !pbData[cbData-1] )
+				cbData--;
 		}
 
 		// UTF-16 Little Endian encoded: Get the image as wide character string.
@@ -1161,6 +1254,38 @@ CMemoView::ConfirmDiscard( void )
 	return	true;
 }
 
+void
+CMemoView::SetIndicatorOfPos( int x, int y )
+{
+	CString	str;
+	str.Format( _T("Lin %d, Col %d"), y+1, x+1 );
+	SetIndicator( 0, str.GetBuffer() );
+}
+
+void
+CMemoView::SetIndicatorOfSize( void )
+{
+	int	nLine = 0;
+	int	cbEOL = 0;
+	TCHAR*	pch = m_strLines.GetBuffer();
+	for	( int ich = 0; pch[ich]; ich++ )
+		if	( pch[ich] == '\n' ){
+			nLine++;
+			if	( !cbEOL )
+				if	( ich )
+					if	( pch[ich-1] == '\r' )
+						cbEOL = 2;
+					else
+						cbEOL = 1;
+		}
+	DWORD	cchData = m_strLines.GetLength();
+	cchData -= nLine*cbEOL;
+
+	CString	str;
+	str.Format( _T("\t%s characters "), CommaDigitsOf( cchData ).GetBuffer() );
+	SetIndicator( 1, str.GetBuffer() );
+}
+
 DWORD
 CMemoView::GetSizeOnFile( CString strFile, bool bModified )
 {
@@ -1183,7 +1308,7 @@ CMemoView::GetSizeOnFile( CString strFile, bool bModified )
 
 	int	cbData = 0;
 
-	if	( m_eEncode == ASCII || m_eEncode == ShiftJIS ){
+	if	( m_eEncode == ASCII ){
 		BYTE*	pbData = NULL;
 		cbData = strLines.GetLength() * sizeof( WCHAR ) +1;
 		pbData = new BYTE[cbData];
@@ -1191,6 +1316,10 @@ CMemoView::GetSizeOnFile( CString strFile, bool bModified )
 		GetWindowTextA( GetSafeHwnd(), (char*)pbData, (int)cbData );
 		cbData = (int)strlen( (char*)pbData );
 		delete[]	pbData;
+	}
+	else if	( m_eEncode == ShiftJIS ){
+		WCHAR*	pwch = strLines.GetBuffer();
+		cbData = ::WideCharToMultiByte( CP_SHIFT_JIS, 0, pwch, -1, NULL, 0, NULL, NULL );
 	}
 	else if	( m_eEncode == UTF8 ){
 		WCHAR*	pwch = strLines.GetBuffer();
@@ -1363,7 +1492,7 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 		else if	( m_eEncode == ShiftJIS )
 			i = 1;
 		else if	( m_eEncode == UTF8 )
-			i = 2;
+			i = m_cbBOM? 3: 2;
 		else if	( m_eEncode == UTF16LE )
 			i = 4;
 		else if	( m_eEncode == UTF16BE )
@@ -1373,8 +1502,8 @@ CMemoView::GetTextEncode( BYTE* pbData, QWORD cbData )
 		str = m_apchEncode[i];
 		if	( cbData == 0 )
 			str = _T("");
-		str += _T(" ");
 		str.Insert( 0, _T("\t") );
+		str +=  _T("\t");
 		SetIndicator( IndicatorOf( ID_INDICATOR_CODE ), str.GetBuffer() );
 		str =
 			( cbData == 0 )?	 _T("Empty"):
@@ -1408,9 +1537,9 @@ CMemoView::GetLowestEncode( Encode& eEncode )
 	BYTE	chError = '\xff';
 	TCHAR*	pbUTF16 = m_strLines.GetBuffer();
 	int	cbSJIS =
-	::WideCharToMultiByte( CP_ACP, 0, (LPCWSTR)pbUTF16, -1, NULL, 0, (CHAR*)&chError, NULL );
+	::WideCharToMultiByte( CP_SHIFT_JIS, 0, (LPCWSTR)pbUTF16, -1, NULL, 0, (CHAR*)&chError, NULL );
 	BYTE*	pbSJIS = new BYTE[(cbSJIS*2)+1];
-	::WideCharToMultiByte( CP_ACP, 0, (LPCWSTR)pbUTF16, -1, (LPSTR)pbSJIS, cbSJIS, (CHAR*)&chError, NULL );
+	::WideCharToMultiByte( CP_SHIFT_JIS, 0, (LPCWSTR)pbUTF16, -1, (LPSTR)pbSJIS, cbSJIS, (CHAR*)&chError, NULL );
 	pbSJIS[cbSJIS*2] = '\0';
 
 	for	( i = 0; i < cbSJIS; i++ )
@@ -1435,7 +1564,9 @@ CMemoView::SetDefaultEncode( CFileDialog& dlg, Encode eEncode )
 {
 	dlg.AddComboBox( IDC_COMBO_ENCODE );
 
-	DWORD	dwLowest = ( eEncode == UTF8 )? 2: ( eEncode == ShiftJIS )? 1: 0;
+	DWORD	dwLowest =	( eEncode == UTF8 )?	 2:
+				( eEncode == ShiftJIS )? 1:
+							 0;
 	for	( DWORD dw = dwLowest; dw < 6; dw++ )
 		dlg.AddControlItem( IDC_COMBO_ENCODE, dw, m_apchEncode[dw] );
 
@@ -1867,7 +1998,7 @@ CMemoView::SetFont( LOGFONT* plf )
 	n *= 100;
 	n /= m_nFontHeightOrg;
 	CString	str;
-	str.Format( _T("\t%d%%"), n );
+	str.Format( _T("\t %d%%"), n );
 	SetIndicator( IndicatorOf( ID_INDICATOR_ZOOM ), str.GetBuffer() );
 }
 
@@ -1882,21 +2013,6 @@ CMemoView::GetSelected( void )
 		strFind = m_strLines.Mid( xStart, ( xEnd - xStart ) );
 
 	return	strFind;
-}
-
-bool
-CMemoView::IsPasteable( void )
-{
-	if	( IsClipboardFormatAvailable( CF_TEXT ) )
-		return	true;
-
-	if	( IsClipboardFormatAvailable( CF_OEMTEXT ) )
-		return	true;
-
-	if	( IsClipboardFormatAvailable( CF_UNICODETEXT ) )
-		return	true;
-
-	return	false;
 }
 
 CString

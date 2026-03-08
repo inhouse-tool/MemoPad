@@ -12,7 +12,7 @@
 #define	SupportDarkMode( hWnd )		AfxGetMainWnd()->SendMessage( WM_DARK_SUPPORT, 0,   (LPARAM)hWnd )
 #define	MessageDlg( lpszPrompt, nType )	AfxGetMainWnd()->SendMessage( WM_MESSAGEDLG, nType, (LPARAM)lpszPrompt )
 #define	SetIndicator( iPane, lpszText )	AfxGetMainWnd()->SendMessage( WM_INDICATOR,  iPane, (LPARAM)lpszText )
-#define	IndicatorOf( n )		(n-ID_INDICATOR_CODE+1)
+#define	IndicatorOf( n )		(n-ID_INDICATOR_CHAR+1)
 
 class	CMainFrame : public CFrameWnd
 {
@@ -62,4 +62,5 @@ protected:
 
 		void	CreateClient( void );
 		void	PlaceWindow( void );
+		void	AdjustPaneWidth( int iIndex );
 };

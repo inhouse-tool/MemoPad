@@ -146,7 +146,7 @@ CMainFrame::OnCreate( LPCREATESTRUCT lpCreateStruct )
 	if	( strTitle.LoadString( IDR_MAINFRAME ) ){
 		strTitle.Insert( 0, _T(" - ") );
 		strTitle.Insert( 0, _T("Untitled") );
-		AfxGetMainWnd()->SetWindowText( strTitle );
+		SetWindowText( strTitle );
 	}
 
 	CreateClient();
@@ -171,6 +171,7 @@ CMainFrame::OnCreate( LPCREATESTRUCT lpCreateStruct )
 	}
 
 	SetTimer( TID_INITIAL, 0, NULL );
+
 	return	0;
 }
 
@@ -286,7 +287,7 @@ CMainFrame::OnViewWordWrap( void )
 
 	CreateClient();
 
-	AfxGetMainWnd()->SetFocus();
+	SetFocus();
 }
 
 void
@@ -380,6 +381,8 @@ CMainFrame::OnIndicator( WPARAM wParam, LPARAM lParam )
 
 	if	( iPane == 0 )
 		m_strIdle = lpszText;
+	else
+		AdjustPaneWidth( iPane );
 
 	return	0;
 }
@@ -393,6 +396,7 @@ CMainFrame::CreateClient( void )
 	static UINT indicators[] =
 	{
 		ID_SEPARATOR,
+		ID_INDICATOR_CHAR,
 		ID_INDICATOR_CODE,
 		ID_INDICATOR_TYPE,
 		ID_INDICATOR_ZOOM
@@ -467,4 +471,32 @@ CMainFrame::PlaceWindow( void )
 	rect.bottom = mi.rcWork.bottom	- ( rcFrame.bottom - rcWindow.bottom );
 
 	SetWindowPos( NULL, rect.left, rect.top, rect.Width(), rect.Height()-1, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE );
+
+	m_wndView.SetArgument( AfxGetApp()->m_lpCmdLine );
+}
+
+void
+CMainFrame::AdjustPaneWidth( int iIndex )
+{
+	UINT	nID, nStyle;
+	int	cxWidth;
+	CString	str;
+
+	m_wndStatusBar.GetPaneInfo( iIndex, nID, nStyle, cxWidth );
+	m_wndStatusBar.GetPaneText( iIndex, str );
+
+	CFont*	pFont = m_wndStatusBar.GetFont();
+	CDC*	pDC = m_wndStatusBar.GetDC();
+	pDC->SelectObject( pFont );
+
+	bool	bMargin = str[0] == '\t' && str[str.GetLength()-1] == '\t';
+	str.Trim();
+	CSize	size = pDC->GetTextExtent( str );
+	if	( bMargin )
+		size.cx += 10;
+
+	m_wndStatusBar.ReleaseDC( pDC );
+
+	if	( size.cx > cxWidth )
+		m_wndStatusBar.SetPaneInfo( iIndex, nID, nStyle, size.cx );
 }

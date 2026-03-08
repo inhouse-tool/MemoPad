@@ -12,6 +12,7 @@ class	CMemoView : public CEdit
 public:
 	CMemoView( void );
 
+		void	SetArgument( CString strArgument );
 #define	STAT_NOFILE	1
 #define	STAT_EMPTY	2
 #define	STAT_MODIFIED	4
@@ -40,6 +41,10 @@ protected:
 			m_strLinesLast,
 			m_strLinesOrg;
 		bool	m_bInsert;
+		bool	m_bSelect;
+
+		int	m_xSelectStart,
+			m_xSelectEnd;
 
 		DWORD	m_cbBOM;
 		DWORD	m_dwBOM;
@@ -60,7 +65,7 @@ protected:
 			m_bFindCase,
 			m_bReplaceAll;
 		int	m_nFound;
-		int	m_xFirst;
+		int	m_xFound1st;
 		bool	m_bWrapped;
 		CString	m_strFind,
 			m_strReplace;
@@ -121,24 +126,31 @@ protected:
 		bool	LoadFile( CString strFile );
 		bool	SaveFile( CString strFile );
 		bool	ConfirmDiscard( void );
+
+		void	SetIndicatorOfPos( int x, int y );
+		void	SetIndicatorOfSize( void );
+
 		DWORD	GetSizeOnFile( CString strFile, bool bModified = false );
 		DWORD	GetSizeOnDisk( CString strFile, DWORD cbFile = 0 );
+
 		void	GetTextEncode( BYTE* pbText, QWORD cbText );
 		void	GetLowestEncode( Encode& eEncode );
 		void	SetDefaultEncode( CFileDialog& dlg, Encode eEncode );
 		void	GetSpecifiedEncode( CFileDialog& dlg );
+
 		void	SetTitle( CString strFile );
 		void	RenewTitle( void );
+
 		void	TakeDiff( void );
 		BOOL	CanUndo( void );
 		BOOL	CanRedo( void );
 		void	Undo( void );
 		void	Redo( void );
+
 		void	SelectWord( void );
 		UINT	TypeOfChar( TCHAR ch );
 		void	SetFont( LOGFONT* plf );
 		CString	GetSelected( void );
-		bool	IsPasteable( void );
 		CString	CommaDigitsOf( int nValue );
 
 		bool	Print( CPrintParam& param );
